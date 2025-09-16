@@ -121,11 +121,17 @@ export interface RegistersResponse {
   total: number;
   rows: Array<{
     name: string | null;
+    cpf: string | null;
+    value: number | null;
+    paymentMethod: string | null;
+    plan: string | null;
+    recurring: boolean | null;
+    status: string | null;
+    saleDate: string | null;
     phone: string | null;
     email: string | null;
     registeredAt: string | null;
     hasPurchase: boolean;
-    plan: string | null;
   }>;
 }
 

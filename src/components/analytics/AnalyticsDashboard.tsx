@@ -19,6 +19,7 @@ import {
 import { MetricCard } from "./MetricCard";
 import { SalesChart } from "./SalesChart";
 import { RegistersTable } from "./RegistersTable";
+import PlansSection from './PlansSection';
 import { UserStreaksList } from "./UserStreaksList";
 
 import { 
@@ -29,6 +30,7 @@ import {
   useCustomers 
 } from "@/hooks/use-analytics";
 import { Period } from "@/types/analytics";
+import PaymentMethodsChart from "./PaymentMethodsChart";
 
 export function AnalyticsDashboard() {
   const [selectedPeriod, setSelectedPeriod] = useState<Period>('30d');
@@ -69,23 +71,8 @@ export function AnalyticsDashboard() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Analytics Dashboard</h1>
-          <p className="text-muted-foreground">
-            Acompanhe métricas de desempenho e crescimento
-          </p>
-        </div>
-        
-        <div className="flex gap-3">
-          <Select value={selectedPeriod} onValueChange={(v) => setSelectedPeriod(v as Period)}>
-            <SelectTrigger className="w-32">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="7d">7 dias</SelectItem>
-              <SelectItem value="15d">15 dias</SelectItem>
-              <SelectItem value="30d">30 dias</SelectItem>
-            </SelectContent>
-          </Select>
+          <h1 className="text-3xl font-bold text-foreground">Relátorio de Vendas</h1>
+          <p className="text-muted-foreground">Questões +</p>
         </div>
       </div>
 
@@ -173,6 +160,9 @@ export function AnalyticsDashboard() {
         />
       </div>
 
+      <PaymentMethodsChart />
+      <PlansSection />
+
       {/* Sales chart */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
@@ -218,11 +208,16 @@ export function AnalyticsDashboard() {
         )}
       </div>
 
-      {/* Bottom section - Tables */}
-      <div className="grid gap-6 lg:grid-cols-2">
+      
+      <div className="space-y-4">
         <RegistersTable />
+        
+      </div>
+      <div className="space-y-6">
+
         <UserStreaksList />
       </div>
     </div>
+    
   );
 }

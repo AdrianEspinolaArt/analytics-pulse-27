@@ -6,7 +6,7 @@ export async function apiGet<T = any>(
   params?: Record<string, any>
 ): Promise<T> {
   // Use environment variable or fallback to empty string
-  const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || '';
+  const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
   const url = new URL(path, baseUrl);
   
   // Add query parameters
