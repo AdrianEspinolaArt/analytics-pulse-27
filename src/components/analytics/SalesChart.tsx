@@ -6,17 +6,20 @@ import { Badge } from "@/components/ui/badge";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from "recharts";
 import { Calendar, TrendingUp } from "lucide-react";
 import { SalesChartDto, SalesMonthlyChartDto } from "@/types/analytics";
+import type { Period } from "@/types/analytics";
 import { cn } from "@/lib/utils";
 
 interface SalesChartProps {
   data: SalesChartDto | SalesMonthlyChartDto;
   type: 'daily' | 'monthly';
+  period?: Period;
+  onPeriodChange?: (p: Period) => void;
   className?: string;
 }
 
-export function SalesChart({ data, type, className }: SalesChartProps) {
+export function SalesChart({ data, type, className, period, onPeriodChange }: SalesChartProps) {
   const chartData = 'dailyData' in data ? data.dailyData : data.monthlyData;
-  const period = data.period;
+  const dataPeriod = data.period;
   const summary = data.summary;
   
   // Format data for chart
@@ -44,7 +47,7 @@ export function SalesChart({ data, type, className }: SalesChartProps) {
   const formatLastUpdated = (dateString: string) => {
     return new Intl.DateTimeFormat('pt-BR', {
       day: '2-digit',
-      month: '2-digit', 
+      month: '2-digit',
       year: 'numeric',
       hour: '2-digit',
       minute: '2-digit',
@@ -62,15 +65,40 @@ export function SalesChart({ data, type, className }: SalesChartProps) {
             <CardDescription className="flex items-center gap-1 mt-1">
               <Calendar className="w-4 h-4" />
               {type === 'daily' 
-                ? `${'days' in period ? period.days : 0} dias` 
-                : `${'months' in period ? period.months : 0} meses`
+                ? `${'days' in dataPeriod ? dataPeriod.days : 0} dias` 
+                : `${'months' in dataPeriod ? dataPeriod.months : 0} meses`
               }
             </CardDescription>
           </div>
-          <Badge variant="outline" className="bg-primary/5 text-primary border-primary/20">
-            <TrendingUp className="w-3 h-3 mr-1" />
-            {formatCurrency(summary.totalValue)}
-          </Badge>
+          <div className="flex items-center gap-3">
+            {/* Period selector (if parent provided handler) */}
+            {onPeriodChange && (
+              <div className="hidden sm:flex items-center gap-2">
+                <div className="inline-flex rounded-md bg-muted/5 p-1">
+                  {(['7d','15d','30d','3m','6m'] as Period[]).map((p) => {
+                    const active = period === p;
+                    return (
+                      <button
+                        key={p}
+                        onClick={() => onPeriodChange(p)}
+                        className={cn(
+                          "px-3 py-1 text-xs rounded-md font-medium transition",
+                          active ? "bg-primary text-white" : "text-muted-foreground hover:bg-muted/10"
+                        )}
+                      >
+                        {p}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            <Badge variant="outline" className="bg-primary/5 text-primary border-primary/20">
+              <TrendingUp className="w-3 h-3 mr-1" />
+              {formatCurrency(summary.totalValue)}
+            </Badge>
+          </div>
         </div>
       </CardHeader>
       

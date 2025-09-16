@@ -185,10 +185,33 @@ export function AnalyticsDashboard() {
             </CardContent>
           </Card>
         ) : salesData ? (
-          <SalesChart 
-            data={salesData}
-            type={isMonthlyView ? 'monthly' : 'daily'}
-          />
+          <div>
+            {/* Mobile / small viewport period selector (since SalesChart hides buttons on xs) */}
+            <div className="flex items-center gap-2 mb-3 sm:hidden">
+              <label className="text-sm text-muted-foreground">Período:</label>
+              <div className="inline-flex rounded-md bg-muted/5 p-1">
+                {(['7d','15d','30d','3m','6m'] as Period[]).map((p) => {
+                  const active = salesPeriod === p;
+                  return (
+                    <button
+                      key={p}
+                      onClick={() => setSalesPeriod(p)}
+                      className={"px-3 py-1 text-xs rounded-md font-medium " + (active ? "bg-primary text-white" : "text-muted-foreground")}
+                    >
+                      {p}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <SalesChart 
+              data={salesData}
+              type={isMonthlyView ? 'monthly' : 'daily'}
+              period={salesPeriod}
+              onPeriodChange={(p) => setSalesPeriod(p)}
+            />
+          </div>
         ) : (
           <Card>
             <CardContent className="pt-6 text-center">
