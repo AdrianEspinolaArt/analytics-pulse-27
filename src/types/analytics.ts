@@ -8,6 +8,9 @@ export interface CadastroMetricsDto {
   cadastros_30_dias: number;
   vendas_confirmadas: number;
   vendas_hoje: number;
+  valor_vendas_confirmadas_hoje: number;
+  valor_vendas_confirmadas_hoje_formatado: string;
+  valor_total_vendas_hoje_formatado: string;
   valor_efetivamente_pago: number;
   valor_efetivamente_pago_formatado: string;
   taxa_conversao_geral: number;

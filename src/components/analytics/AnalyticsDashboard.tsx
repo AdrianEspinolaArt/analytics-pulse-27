@@ -1,7 +1,5 @@
 import { useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { 
@@ -9,37 +7,30 @@ import {
   Users, 
   TrendingUp, 
   DollarSign, 
-  Target, 
   ShoppingCart,
-  AlertCircle,
   Calendar,
-  RefreshCw
+  AlertCircle
 } from "lucide-react";
 
 import { MetricCard } from "./MetricCard";
 import { SalesChart } from "./SalesChart";
 import { RegistersTable } from "./RegistersTable";
 import PlansSection from './PlansSection';
-import { UserStreaksList } from "./UserStreaksList";
+import PaymentMethodsChart from "./PaymentMethodsChart";
 
 import { 
   useRegistrations, 
-  useConversion, 
   useSales, 
-  useSalesMonthly, 
-  useCustomers 
+  useSalesMonthly
 } from "@/hooks/use-analytics";
 import { Period } from "@/types/analytics";
-import PaymentMethodsChart from "./PaymentMethodsChart";
+import RecurringMetrics from "./RecurringMetrics";
 
 export function AnalyticsDashboard() {
   const [selectedPeriod, setSelectedPeriod] = useState<Period>('30d');
   const [salesPeriod, setSalesPeriod] = useState<Period>('15d');
 
-  // Data hooks
   const { data: registrations, isLoading: loadingReg, isError: errorReg } = useRegistrations(selectedPeriod);
-  const { data: conversion, isLoading: loadingConv, isError: errorConv } = useConversion();
-  const { data: customers, isLoading: loadingCust, isError: errorCust } = useCustomers();
   const { data: salesDaily, isLoading: loadingSalesDaily } = useSales(
     salesPeriod.includes('m') ? undefined : salesPeriod
   );
@@ -51,9 +42,7 @@ export function AnalyticsDashboard() {
   const salesData = isMonthlyView ? salesMonthly : salesDaily;
   const loadingSales = isMonthlyView ? loadingSalesMonthly : loadingSalesDaily;
 
-  const hasError = errorReg || errorConv || errorCust;
-
-  if (hasError) {
+  if (errorReg) {
     return (
       <div className="space-y-6">
         <Alert variant="destructive">
@@ -71,64 +60,63 @@ export function AnalyticsDashboard() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Relátorio de Vendas</h1>
+          <h1 className="text-3xl font-bold text-foreground">Relatório de Vendas</h1>
           <p className="text-muted-foreground">Questões +</p>
         </div>
       </div>
 
-      {/* Key metrics cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <MetricCard
-          title="Total de Usuários"
-          value={loadingReg ? <Skeleton className="h-7 w-16" /> : (registrations?.total_usuarios || 0)}
-          subtitle="Usuários cadastrados"
-          icon={<Users className="h-4 w-4" />}
-          variant="primary"
-        />
-        
-        <MetricCard
-          title="Vendas Confirmadas"
-          value={loadingReg ? <Skeleton className="h-7 w-16" /> : (registrations?.vendas_confirmadas || 0)}
-          subtitle={registrations?.valor_efetivamente_pago_formatado}
-          trend={registrations && {
-            value: registrations.taxa_conversao_geral,
-            isPositive: registrations.taxa_conversao_geral > 20,
-            label: "conversão geral"
-          }}
-          icon={<ShoppingCart className="h-4 w-4" />}
-          variant="success"
-        />
+      {/* Top Metrics */}
+      <div className="grid grid-cols-1 lg:grid-cols-1 gap-6">
+        {/* Card principal */}
+        <div className="lg:col-span-2">
+  <Card className="relative overflow-hidden  rounded-3xl bg-gradient-to-r from-green-50 to-green-100">
+    {/* Ícone de fundo suavizado */}
+    <div className="absolute -right-16 -top-16 opacity-10 scale-110">
+      <ShoppingCart className="w-56 h-56 text-green-400" />
+    </div>
 
-        <MetricCard
-          title="Taxa de Conversão"
-          value={loadingConv ? <Skeleton className="h-7 w-16" /> : 
-            (conversion ? `${conversion.users.conversionRate.toFixed(1)}%` : 'N/A')
-          }
-          subtitle="Usuários que compraram"
-          trend={conversion && {
-            value: conversion.users.conversionRate,
-            isPositive: conversion.users.conversionRate > 15,
-            label: "média do setor"
-          }}
-          icon={<Target className="h-4 w-4" />}
-          variant="info"
-        />
+    <CardContent className="p-8">
+      <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-6">
+        <div>
+          <h3 className="text-xl font-semibold text-green-900">Valor Efetivamente Pago</h3>
+          <p className="text-sm text-green-700 mt-1">Desde o Lançamento</p>
+        </div>
 
-        <MetricCard
-          title="Ticket Médio"
-          value={loadingReg ? <Skeleton className="h-7 w-16" /> : (registrations?.ticket_medio_formatado || 'N/A')}
-          subtitle="Valor médio por venda"
-          trend={registrations && {
-            value: registrations.ticket_medio > 75 ? 15 : -5,
-            isPositive: registrations.ticket_medio > 75,
-            label: "vs mês anterior"
-          }}
-          icon={<DollarSign className="h-4 w-4" />}
-          variant="warning"
-        />
+        <div className="flex items-baseline gap-2">
+          <div className="text-5xl md:text-6xl font-bold text-green-950">
+            {loadingReg ? <Skeleton className="h-10 w-48" /> : (registrations?.valor_efetivamente_pago_formatado || 'R$ 0,00')}
+          </div>
+          <span className="text-sm text-green-800">total</span>
+        </div>
       </div>
 
-      {/* Period specific metrics */}
+      {/* Subcards internos */}
+      <div className="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-4">
+        {[
+          { label: "Pedidos", value: registrations?.vendas_confirmadas },
+          { label: "Ticket Médio", value: registrations?.ticket_medio_formatado },
+          { label: "Conversão", value: registrations?.taxa_conversao_geral + "%" },
+        ].map((item) => (
+          <div
+            key={item.label}
+            className="flex flex-col items-center justify-center p-5 bg-white/90 backdrop-blur-sm rounded-2xl shadow hover:shadow-lg transition-shadow duration-300"
+          >
+            <div className="text-sm font-medium text-green-700">{item.label}</div>
+            <div className="text-lg md:text-xl font-semibold text-green-900 mt-1">
+              {loadingReg ? <Skeleton className="h-6 w-20" /> : item.value || 0}
+            </div>
+          </div>
+        ))}
+      </div>
+    </CardContent>
+  </Card>
+</div>
+
+     
+        
+      </div>
+
+      {/* Period-specific metrics */}
       <div className="grid gap-4 md:grid-cols-3">
         <MetricCard
           title="Cadastros Hoje"
@@ -136,12 +124,12 @@ export function AnalyticsDashboard() {
           subtitle="Novos usuários hoje"
           icon={<Calendar className="h-4 w-4" />}
         />
-        
+
         <MetricCard
           title={`Cadastros (${selectedPeriod})`}
           value={loadingReg ? <Skeleton className="h-6 w-12" /> : 
-            selectedPeriod === '7d' ? (registrations?.cadastros_7_dias || 0) :
-            (registrations?.cadastros_30_dias || 0)
+        selectedPeriod === '7d' ? (registrations?.cadastros_7_dias || 0) :
+        (registrations?.cadastros_30_dias || 0)
           }
           subtitle={`Novos no período de ${selectedPeriod}`}
           icon={<TrendingUp className="h-4 w-4" />}
@@ -151,10 +139,32 @@ export function AnalyticsDashboard() {
           title="Vendas Hoje"
           value={loadingReg ? <Skeleton className="h-6 w-12" /> : (registrations?.vendas_hoje || 0)}
           subtitle="Vendas confirmadas hoje"
+          icon={<BarChart3 className="h-4 w-4" />}
+        />
+
+        <MetricCard
+          title="Valor de Vendas"
+          value={loadingReg ? <Skeleton className="h-6 w-12" /> : (registrations?.valor_vendas_confirmadas_hoje_formatado || 0)}
+          subtitle="Vendas confirmadas hoje"
+          icon={<DollarSign className="h-4 w-4" />}
+        />
+
+        <MetricCard
+          title="Valor Total"
+          value={loadingReg ? <Skeleton className="h-6 w-12" /> : (registrations?.valor_total_vendas_hoje_formatado || 0)}
+          subtitle="Vendas totais de hoje"
+          icon={<ShoppingCart className="h-4 w-4" />}
+        />
+
+        {/* Card de Conversão Diária */}
+       <MetricCard
+          title="Taxa de Conversão Hoje"
+          value={loadingReg ? <Skeleton className="h-6 w-12" /> : (registrations?.taxa_conversao_hoje + "%" || '0%')}
+          subtitle="Comparado à taxa geral"
           trend={registrations && {
             value: registrations.taxa_conversao_hoje,
             isPositive: registrations.taxa_conversao_hoje > registrations.taxa_conversao_geral,
-            label: "conversão hoje"
+            label: ""
           }}
           icon={<BarChart3 className="h-4 w-4" />}
         />
@@ -162,31 +172,14 @@ export function AnalyticsDashboard() {
 
       <PaymentMethodsChart />
       <PlansSection />
+      <RecurringMetrics />
 
       {/* Sales chart */}
       <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-xl font-semibold text-foreground">Vendas</h2>
-          <Select value={salesPeriod} onValueChange={(v) => setSalesPeriod(v as Period)}>
-            <SelectTrigger className="w-40">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="7d">Últimos 7 dias</SelectItem>
-              <SelectItem value="15d">Últimos 15 dias</SelectItem>
-              <SelectItem value="30d">Últimos 30 dias</SelectItem>
-              <SelectItem value="3m">Últimos 3 meses</SelectItem>
-              <SelectItem value="6m">Últimos 6 meses</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+        <h2 className="text-xl font-semibold text-foreground">Vendas</h2>
 
         {loadingSales ? (
           <Card>
-            <CardHeader>
-              <Skeleton className="h-6 w-48" />
-              <Skeleton className="h-4 w-32" />
-            </CardHeader>
             <CardContent>
               <Skeleton className="h-[300px] w-full" />
             </CardContent>
@@ -198,23 +191,18 @@ export function AnalyticsDashboard() {
           />
         ) : (
           <Card>
-            <CardContent className="pt-6">
-              <div className="text-center py-8">
-                <BarChart3 className="h-12 w-12 text-muted-foreground mx-auto mb-4 opacity-50" />
-                <p className="text-muted-foreground">Dados de vendas não disponíveis</p>
-              </div>
+            <CardContent className="pt-6 text-center">
+              <BarChart3 className="h-12 w-12 text-muted-foreground mx-auto mb-4 opacity-50" />
+              <p className="text-muted-foreground">Dados de vendas não disponíveis</p>
             </CardContent>
           </Card>
         )}
       </div>
 
-      
+      {/* Registers Table */}
       <div className="space-y-4">
         <RegistersTable />
-        
       </div>
-
     </div>
-    
   );
 }
