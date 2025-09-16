@@ -213,10 +213,7 @@ export function AnalyticsDashboard() {
         <RegistersTable />
         
       </div>
-      <div className="space-y-6">
 
-        <UserStreaksList />
-      </div>
     </div>
     
   );
