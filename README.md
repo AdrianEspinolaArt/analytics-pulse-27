@@ -1,73 +1,127 @@
-# Welcome to your Lovable project
+# Analytics Dashboard
 
-## Project info
+Um dashboard completo de analytics integrado à API `/analytics`, construído com React, TypeScript, Tailwind CSS e React Query.
 
-**URL**: https://lovable.dev/projects/7bc238ab-b6bd-45a8-bdbb-fbc90e58bc63
+## 🚀 Recursos
 
-## How can I edit this code?
+- **Dashboard Interativo**: Visualização completa de métricas de negócio
+- **Gráficos Dinâmicos**: Vendas diárias e mensais com Recharts  
+- **Filtros Avançados**: Períodos personalizáveis (7d, 15d, 30d, 3m, 6m)
+- **Tabelas Paginadas**: Listagem de registros com navegação
+- **Design Responsivo**: Funciona perfeitamente em desktop e mobile
+- **Estados de Loading**: Skeletons elegantes durante carregamento
+- **Tratamento de Erros**: Mensagens amigáveis para usuários
 
-There are several ways of editing your application.
+## 📊 Métricas Disponíveis
 
-**Use Lovable**
+### Cards Principais
+- Total de usuários cadastrados
+- Vendas confirmadas e valor total
+- Taxa de conversão geral e diária
+- Ticket médio e tendências
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/7bc238ab-b6bd-45a8-bdbb-fbc90e58bc63) and start prompting.
+### Gráficos
+- Vendas diárias (últimos 7-30 dias)
+- Vendas mensais (últimos 3-6 meses)
+- Visualização com tooltips interativos
 
-Changes made via Lovable will be committed automatically to this repo.
+### Tabelas
+- Lista paginada de registros de usuários
+- Status de compra e planos
+- Streaks de usuários ativos
 
-**Use your preferred IDE**
+## 🛠️ Tecnologias
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+- **React 18** com TypeScript
+- **Tailwind CSS** para styling
+- **React Query** para gerenciamento de estado
+- **Recharts** para gráficos
+- **Shadcn/UI** para componentes base
+- **Lucide React** para ícones
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+## 🎨 Design System
 
-Follow these steps:
+O projeto utiliza um design system completo com:
+- Paleta de cores profissional (azul, verde, laranja, ciano)
+- Gradientes sutis para cards de métricas
+- Animações de transição suaves
+- Tokens semânticos para consistência
+- Suporte nativo a dark/light mode
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+## 📁 Estrutura do Projeto
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+```
+src/
+├── components/analytics/          # Componentes do dashboard
+│   ├── AnalyticsDashboard.tsx    # Componente principal
+│   ├── MetricCard.tsx            # Cards de métricas
+│   ├── SalesChart.tsx            # Gráficos de vendas
+│   ├── RegistersTable.tsx        # Tabela de registros
+│   └── UserStreaksList.tsx       # Lista de streaks
+├── hooks/
+│   └── use-analytics.ts          # Hooks do React Query
+├── lib/
+│   └── api.ts                    # Cliente HTTP centralizado
+├── types/
+│   └── analytics.ts              # Tipos TypeScript
+├── utils/
+│   └── formatters.ts             # Formatadores PT-BR
+└── docs/
+    └── analytics-api.md          # Documentação da API
 ```
 
-**Edit a file directly in GitHub**
+## 🔧 Configuração
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+1. **Variáveis de Ambiente**
+   ```env
+   NEXT_PUBLIC_API_BASE_URL=https://sua-api.com
+   ```
 
-**Use GitHub Codespaces**
+2. **Cache Strategy**
+   - Dados de curto prazo (7d): 1 minuto
+   - Dados de longo prazo (30d+): 5 minutos
+   - Refetch automático a cada 5 minutos
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+3. **Formatação**
+   - Moeda: Real Brasileiro (R$)
+   - Datas: Formato DD/MM/AAAA
+   - Números: Separadores PT-BR
 
-## What technologies are used for this project?
+## 📱 Responsividade
 
-This project is built with:
+O dashboard é totalmente responsivo:
+- **Desktop**: Grid de 4 colunas para métricas principais
+- **Tablet**: Grid adaptativo de 2 colunas
+- **Mobile**: Layout em coluna única com navegação otimizada
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+## 🚦 Estados da Aplicação
 
-## How can I deploy this project?
+- **Loading**: Skeletons elegantes com animação
+- **Erro**: Alerts informativos com opções de retry
+- **Vazio**: Estados vazios com orientações claras
+- **Sucesso**: Dados carregados com transições suaves
 
-Simply open [Lovable](https://lovable.dev/projects/7bc238ab-b6bd-45a8-bdbb-fbc90e58bc63) and click on Share -> Publish.
+## 📖 Uso
 
-## Can I connect a custom domain to my Lovable project?
+O dashboard carrega automaticamente ao abrir a aplicação. Use os filtros no cabeçalho para:
 
-Yes, you can!
+1. **Período de Métricas**: 7d, 15d, 30d
+2. **Período de Vendas**: Diário (7d-30d) ou Mensal (3m-6m)
+3. **Navegação**: Tabelas com paginação integrada
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+## 🔄 Atualizações
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+- **Automáticas**: A cada 5 minutos via React Query
+- **Manuais**: Refresh da página ou mudança de filtros
+- **Cache**: Otimizado para reduzir requisições desnecessárias
+
+## 🎯 Performance
+
+- **React Query**: Cache inteligente e deduplicação
+- **Lazy Loading**: Componentes carregados sob demanda
+- **Otimização**: Memoização de componentes pesados
+- **Bundle**: Code splitting automático
+
+---
+
+Desenvolvido com ❤️ usando as melhores práticas de desenvolvimento frontend.
