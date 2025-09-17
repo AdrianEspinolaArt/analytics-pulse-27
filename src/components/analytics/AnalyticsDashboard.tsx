@@ -27,7 +27,7 @@ import { Period } from "@/types/analytics";
 import RecurringMetrics from "./RecurringMetrics";
 
 export function AnalyticsDashboard() {
-  const [selectedPeriod, setSelectedPeriod] = useState<Period>('30d');
+  const [selectedPeriod, setSelectedPeriod] = useState<Period>('7d');
   const [salesPeriod, setSalesPeriod] = useState<Period>('15d');
 
   const { data: registrations, isLoading: loadingReg, isError: errorReg } = useRegistrations(selectedPeriod);
@@ -91,11 +91,12 @@ export function AnalyticsDashboard() {
       </div>
 
       {/* Subcards internos */}
-      <div className="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="mt-8 grid grid-cols-1 sm:grid-cols-4 gap-4">
         {[
           { label: "Pedidos", value: registrations?.vendas_confirmadas },
           { label: "Ticket Médio", value: registrations?.ticket_medio_formatado },
           { label: "Conversão", value: registrations?.taxa_conversao_geral + "%" },
+          { label: "Cadastros Totais", value: registrations?.total_usuarios  },
         ].map((item) => (
           <div
             key={item.label}
@@ -129,7 +130,7 @@ export function AnalyticsDashboard() {
           title={`Cadastros (${selectedPeriod})`}
           value={loadingReg ? <Skeleton className="h-6 w-12" /> : 
         selectedPeriod === '7d' ? (registrations?.cadastros_7_dias || 0) :
-        (registrations?.cadastros_30_dias || 0)
+        (registrations?.cadastros_7_dias || 0)
           }
           subtitle={`Novos no período de ${selectedPeriod}`}
           icon={<TrendingUp className="h-4 w-4" />}
@@ -178,48 +179,61 @@ export function AnalyticsDashboard() {
       <div className="space-y-4">
         <h2 className="text-xl font-semibold text-foreground">Vendas</h2>
 
-        {loadingSales ? (
-          <Card>
-            <CardContent>
-              <Skeleton className="h-[300px] w-full" />
-            </CardContent>
-          </Card>
-        ) : salesData ? (
-          <div>
-            {/* Mobile / small viewport period selector (since SalesChart hides buttons on xs) */}
-            <div className="flex items-center gap-2 mb-3 sm:hidden">
-              <label className="text-sm text-muted-foreground">Período:</label>
-              <div className="inline-flex rounded-md bg-muted/5 p-1">
-                {(['7d','15d','30d','3m','6m'] as Period[]).map((p) => {
-                  const active = salesPeriod === p;
-                  return (
-                    <button
-                      key={p}
-                      onClick={() => setSalesPeriod(p)}
-                      className={"px-3 py-1 text-xs rounded-md font-medium " + (active ? "bg-primary text-white" : "text-muted-foreground")}
-                    >
-                      {p}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
+        {(() => {
+          if (loadingSales) {
+            return (
+              <Card>
+                <CardContent>
+                  <Skeleton className="h-[300px] w-full" />
+                </CardContent>
+              </Card>
+            );
+          } else if (salesData) {
+            return (
+              <div>
+                {/* Mobile / small viewport period selector (since SalesChart hides buttons on xs) */}
+                <div className="flex items-center gap-2 mb-3 sm:hidden">
+                  <label
+                    className="text-sm text-muted-foreground"
+                    htmlFor="sales-period-selector"
+                  >
+                    Período:
+                  </label>
+                  <div className="inline-flex rounded-md bg-muted/5 p-1" id="sales-period-selector">
+                    {(['7d','15d','30d','3m','6m'] as Period[]).map((p) => {
+                      const active = salesPeriod === p;
+                      return (
+                        <button
+                          key={p}
+                          onClick={() => setSalesPeriod(p)}
+                          className={"px-3 py-1 text-xs rounded-md font-medium " + (active ? "bg-primary text-white" : "text-muted-foreground")}
+                        >
+                          {p}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
 
-            <SalesChart 
-              data={salesData}
-              type={isMonthlyView ? 'monthly' : 'daily'}
-              period={salesPeriod}
-              onPeriodChange={(p) => setSalesPeriod(p)}
-            />
-          </div>
-        ) : (
-          <Card>
-            <CardContent className="pt-6 text-center">
-              <BarChart3 className="h-12 w-12 text-muted-foreground mx-auto mb-4 opacity-50" />
-              <p className="text-muted-foreground">Dados de vendas não disponíveis</p>
-            </CardContent>
-          </Card>
-        )}
+                <SalesChart 
+                  data={salesData}
+                  type={isMonthlyView ? 'monthly' : 'daily'}
+                  period={salesPeriod}
+                  onPeriodChange={(p) => setSalesPeriod(p)}
+                />
+              </div>
+            );
+          } else {
+            return (
+              <Card>
+                <CardContent className="pt-6 text-center">
+                  <BarChart3 className="h-12 w-12 text-muted-foreground mx-auto mb-4 opacity-50" />
+                  <p className="text-muted-foreground">Dados de vendas não disponíveis</p>
+                </CardContent>
+              </Card>
+            );
+          }
+        })()}
       </div>
 
       {/* Registers Table */}

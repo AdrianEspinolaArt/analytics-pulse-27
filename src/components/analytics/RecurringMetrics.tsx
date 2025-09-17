@@ -85,6 +85,7 @@ export default function RecurringMetrics() {
         />
         <MetricCard
           title="ARR (Receita Recorrente Anual)"
+          subtitle="Quantidade de planos anuais vendidos neste mês com potencial de renovação no próximo mês"
           value={formatCurrency(data.arr)}
           variant="success"
           icon={<CurrencyDollarIcon className="w-5 h-5 text-green-500" />}
