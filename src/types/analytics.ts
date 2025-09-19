@@ -125,7 +125,7 @@ export interface RegistersResponse {
   rows: Array<{
     name: string | null;
     cpf: string | null;
-    value: number | null;
+    value: string | number | null;
     paymentMethod: string | null;
     plan: string | null;
     recurring: boolean | null;

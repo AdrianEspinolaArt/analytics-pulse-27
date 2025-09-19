@@ -19,6 +19,11 @@ const PAGE_SIZE = 10;
 
 const formatDate = (dateString: string | null) => {
   if (!dateString) return "—";
+  // Verifica se a data já está no formato "DD/MM/AAAA - HH:MM:SS"
+  if (dateString.includes('/') && dateString.includes(' - ')) {
+    return dateString;
+  }
+  // Caso contrário, formata a partir de uma data ISO
   return new Intl.DateTimeFormat("pt-BR", {
     day: "2-digit",
     month: "2-digit",
@@ -30,6 +35,10 @@ const formatDate = (dateString: string | null) => {
 
 const formatPhone = (phone: string | null) => {
   if (!phone) return "—";
+  // Verificar se já está formatado como (XX) XXXXX-XXXX ou (XX) X XXXX-XXXX
+  if (phone.match(/\(\d{2}\)\s+\d.*\-\d+/)) {
+    return phone;
+  }
   return phone.replace(/(\d{2})(\d{4,5})(\d{4})/, "($1) $2-$3");
 };
 
@@ -140,9 +149,10 @@ export function RegistersTable({ className }: Readonly<RegistersTableProps>) {
             </CardDescription>
           </div>
           <div className="flex items-center gap-2">
-            <Button
+              <Button
               size="sm"
               variant="ghost"
+              title="Exportar todos os registros para Excel ou CSV"
               onClick={async () => {
                 setIsExporting(true);
                 try {
@@ -155,13 +165,75 @@ export function RegistersTable({ className }: Readonly<RegistersTableProps>) {
                     // @ts-ignore
                     const res = await analyticsApi.registers(limit, skip);
                     if (!res?.rows) break;
-                    allRows.push(...res.rows);
+                    // Normaliza os dados e traduz os nomes dos campos para o formato amigável
+                    const normalizedRows = res.rows.map(row => {
+                      // Traduzir métodos de pagamento
+                      let paymentMethodTranslated = "";
+                      switch (row.paymentMethod) {
+                        case "CREDIT_CARD": paymentMethodTranslated = "Cartão de Crédito"; break;
+                        case "SUBSCRIPTION": paymentMethodTranslated = "Assinatura"; break;
+                        case "BILLET": paymentMethodTranslated = "Boleto"; break;
+                        case "PIX": paymentMethodTranslated = "Pix"; break;
+                        case "GIFT": paymentMethodTranslated = "Gratuito"; break;
+                        case "IN_APP": paymentMethodTranslated = "Apple/Google"; break;
+                        default: paymentMethodTranslated = row.paymentMethod || "";
+                      }
+                      
+                      // Traduzir status
+                      let statusTranslated = "";
+                      switch (row.status) {
+                        case "EXPIRED": statusTranslated = "Expirado"; break;
+                        case "PENDING": statusTranslated = "Pendente"; break;
+                        case "PAID": statusTranslated = "Pago"; break;
+                        case "REFUSED": statusTranslated = "Recusado"; break;
+                        case "CANCELED": statusTranslated = "Cancelado"; break;
+                        case "REFUNDED": statusTranslated = "Reembolsado"; break;
+                        default: statusTranslated = row.status || "";
+                      }
+                      
+                      // Simplificar descrição do plano
+                      let planSimplified = row.plan || "";
+                      if (row.plan === "ASSINATURA QUESTOES+ MENSAL") {
+                        planSimplified = "Assinatura Mensal";
+                      } else if (row.plan === "ASSINATURA QUESTOES+ ANUAL") {
+                        planSimplified = "Assinatura Anual";
+                      } else if (!row.plan || row.plan === "") {
+                        planSimplified = "Gratuito";
+                      } else if (row.plan === "TRIAL") {
+                        planSimplified = "Trial";
+                      }
+
+                      // Formatar nome com capitalização correta
+                      const formattedName = row.name ? 
+                        row.name
+                          .split(" ")
+                          .map(word => word.length > 0 ? word[0].toLocaleUpperCase() + word.slice(1).toLocaleLowerCase() : "")
+                          .join(" ") 
+                        : "";
+                      
+                      // Determinar se é gratuito
+                      const isGratuito = row.paymentMethod === "GIFT" || row.plan === "TRIAL";
+                      
+                      return {
+                        "Nome Completo": formattedName,
+                        "CPF": row.cpf || "",
+                        "Valor": row.value || "",
+                        "Método de Pagamento": isGratuito ? "Gratuito" : paymentMethodTranslated,
+                        "Plano": isGratuito ? "Gratuito" : planSimplified,
+                        "Recorrente": row.recurring ? "Sim" : "Não",
+                        "Status": statusTranslated,
+                        "Data da Venda": row.saleDate || "",
+                        "Telefone": row.phone || "",
+                        "Email": row.email || "",
+                        "Data de Cadastro": row.registeredAt || "",
+                        "Tem Compra": row.hasPurchase ? "Sim" : "Não"
+                      };
+                    });
+                    allRows.push(...normalizedRows);
                     skip += limit;
                     if (allRows.length >= (res.total ?? allRows.length)) break;
                     if (res.rows.length < limit) break;
-                  }
-
-                  if (allRows.length === 0) {
+                  }                  if (allRows.length === 0) {
                     setIsExporting(false);
                     return;
                   }
