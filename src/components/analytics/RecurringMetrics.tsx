@@ -102,7 +102,7 @@ export default function RecurringMetrics() {
               title="ARR (Receita Recorrente Anual)"
               value={formatCurrency(data.arr)}
               variant="success"
-              subtitle="Quantidade de planos anuais vendidos neste mês com potencial de renovação no próximo mês"
+              subtitle="Quantidade de planos anuais vendidos neste mês com potencial de renovação no próximo ano"
               icon={<CurrencyDollarIcon className="w-5 h-5 text-green-500" />}
             />
           </div>
