@@ -23,33 +23,56 @@ import { CurrencyDollarIcon, CheckCircleIcon, ClipboardIcon } from "@heroicons/r
 
 type MethodEntry = {
   paymentMethod: string;
-  totalOrders: number;
-  totalValue: number;
-  totalPaidOrders: number;
-  totalPaidValue: number;
-  averagePaidTicket: number;
+  pedidos: {
+    total: number;
+    pagos: number;
+    reembolsados: number;
+  };
+  valores: {
+    totalPedidos: string;
+    pago: string;
+    recebidos: string;
+    reembolsado: string;
+  };
+  ticketMedio: string;
 };
 
 type PaymentMethodsDto = {
-  methods: MethodEntry[];
-  totalOrders: number;
-  totalValue: number;
-  totalPaidOrders: number;
-  totalPaidValue: number;
+  metodos: MethodEntry[];
+  somaGeral?: {
+    totalPedidos: number;
+    pedidosPagos: number;
+    pedidosReembolsados: number;
+    valorTotalPedidos: string;
+    valorPago: string;
+    valorRecebidos: string;
+    valorReembolsado: string;
+    ticketMedio: string;
+  };
 };
 
 const COLORS = ["#06b6d4", "#7c3aed", "#ef4444", "#f59e0b", "#10b981", "#3b82f6"];
 
 const PAYMENT_LABELS: Record<string, string> = {
   GIFT: "Gratuito",
-  PIX: "Pix",
+  PIX: "PIX",
   SUBSCRIPTION: "Assinatura",
   CREDIT_CARD: "Crédito",
-  IN_APP: "Apple",
+  IN_APP: "In App",
 };
 
 function formatCurrency(value: number) {
   return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
+}
+
+function parseCurrency(value?: string) {
+  if (!value) return 0;
+  // Remove currency symbol and spaces
+  let v = String(value).replace(/\s/g, '').replace('R$', '').trim();
+  // Remove thousand separators (dots) and replace decimal comma with dot
+  v = v.replace(/\./g, '').replace(/,/g, '.');
+  const n = Number(v);
+  return isNaN(n) ? 0 : n;
 }
 
 export default function PaymentMethodsChart() {
@@ -87,23 +110,86 @@ export default function PaymentMethodsChart() {
     );
   }
 
-  const methods = data.methods || [];
+  const methods = (data as PaymentMethodsDto).metodos || [];
 
   const ordersByMethod = methods.map((m) => ({
     code: m.paymentMethod,
     label: PAYMENT_LABELS[m.paymentMethod] || m.paymentMethod,
-    value: m.totalOrders,
+    value: m.pedidos?.total ?? 0,
   }));
 
   const paidValueByMethod = methods.map((m) => ({
     code: m.paymentMethod,
     label: PAYMENT_LABELS[m.paymentMethod] || m.paymentMethod,
-    value: m.totalPaidValue,
+    value: parseCurrency(m.valores?.pago),
   }));
 
   return (
     <div className="space-y-6">
       {/* Charts */}
+      
+
+      {/* Summary Table */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Resumo por Método</CardTitle>
+          <CardDescription>Detalhes completos de pedidos e valores</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Método de Pagamento</TableHead>
+                <TableHead>Pedidos</TableHead>
+                <TableHead>Pd.Pagos</TableHead>
+                <TableHead>Pd. Reembolsados</TableHead>
+                <TableHead>Total</TableHead>
+                <TableHead>Valor Pago</TableHead>
+                <TableHead>Valor Reembolsado</TableHead>
+                <TableHead>Valor Recebido</TableHead>
+                <TableHead>Ticket Médio</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {methods.map((m, idx) => (
+                <TableRow key={m.paymentMethod} className={idx % 2 === 0 ? "bg-gray-50" : ""}>
+                  <TableCell>
+                    <Badge
+                      style={{ backgroundColor: COLORS[ordersByMethod.findIndex(o => o.code === m.paymentMethod) % COLORS.length], color: "#fff" }}
+                      variant="outline"
+                    >
+                      {ordersByMethod.find(o => o.code === m.paymentMethod)?.label || m.paymentMethod}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>{(m.pedidos?.total ?? 0).toLocaleString('pt-BR')}</TableCell>
+                  <TableCell>{(m.pedidos?.pagos ?? 0).toLocaleString('pt-BR')}</TableCell>
+                  <TableCell>{(m.pedidos?.reembolsados ?? 0).toLocaleString('pt-BR')}</TableCell>
+                  <TableCell>{m.valores?.totalPedidos ?? 'R$ 0,00'}</TableCell>
+                  <TableCell>{m.valores?.pago ?? 'R$ 0,00'}</TableCell>
+                  <TableCell>{m.valores?.reembolsado ?? 'R$ 0,00'}</TableCell>
+                  <TableCell>{m.valores?.recebidos ?? 'R$ 0,00'}</TableCell>
+                  <TableCell>{m.ticketMedio ?? 'R$ 0,00'}</TableCell>
+                </TableRow>
+              ))}
+
+              {/* Linha de totais agregados, se disponível */}
+              {((data as PaymentMethodsDto).somaGeral) && (
+                <TableRow className="font-semibold bg-gray-100">
+                  <TableCell>Totais</TableCell>
+                  <TableCell>{((data as PaymentMethodsDto).somaGeral!.totalPedidos ?? 0).toLocaleString('pt-BR')}</TableCell>
+                  <TableCell>{((data as PaymentMethodsDto).somaGeral!.pedidosPagos ?? 0).toLocaleString('pt-BR')}</TableCell>
+                  <TableCell>{((data as PaymentMethodsDto).somaGeral!.pedidosReembolsados ?? 0).toLocaleString('pt-BR')}</TableCell>
+                  <TableCell>{(data as PaymentMethodsDto).somaGeral!.valorTotalPedidos ?? 'R$ 0,00'}</TableCell>
+                  <TableCell>{(data as PaymentMethodsDto).somaGeral!.valorPago ?? 'R$ 0,00'}</TableCell>
+                  <TableCell>{(data as PaymentMethodsDto).somaGeral!.valorReembolsado ?? 'R$ 0,00'}</TableCell>
+                  <TableCell>{(data as PaymentMethodsDto).somaGeral!.valorRecebidos ?? 'R$ 0,00'}</TableCell>
+                  <TableCell>{(data as PaymentMethodsDto).somaGeral!.ticketMedio ?? 'R$ 0,00'}</TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Pie Chart */}
         <Card>
@@ -186,47 +272,6 @@ export default function PaymentMethodsChart() {
           </CardContent>
         </Card>
       </div>
-
-      {/* Summary Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Resumo por Método</CardTitle>
-          <CardDescription>Detalhes completos de pedidos e valores</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Método de Pagamento</TableHead>
-                <TableHead>Total Pedidos</TableHead>
-                <TableHead>Valor Total</TableHead>
-                <TableHead>Pedidos Pagos</TableHead>
-                <TableHead>Valor Pago</TableHead>
-                <TableHead>Ticket Médio</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {methods.map((m, idx) => (
-                <TableRow key={m.paymentMethod} className={idx % 2 === 0 ? "bg-gray-50" : ""}>
-                  <TableCell>
-                    <Badge
-                      style={{ backgroundColor: COLORS[ordersByMethod.findIndex(o => o.code === m.paymentMethod) % COLORS.length], color: "#fff" }}
-                      variant="outline"
-                    >
-                      {ordersByMethod.find(o => o.code === m.paymentMethod)?.label || m.paymentMethod}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>{m.totalOrders.toLocaleString('pt-BR')}</TableCell>
-                  <TableCell>{formatCurrency(m.totalValue)}</TableCell>
-                  <TableCell>{m.totalPaidOrders.toLocaleString('pt-BR')}</TableCell>
-                  <TableCell>{formatCurrency(m.totalPaidValue)}</TableCell>
-                  <TableCell>{formatCurrency(m.averagePaidTicket)}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
     </div>
   );
 }

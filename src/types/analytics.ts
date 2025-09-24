@@ -13,6 +13,31 @@ export interface CadastroMetricsDto {
   valor_total_vendas_hoje_formatado: string;
   valor_efetivamente_pago: number;
   valor_efetivamente_pago_formatado: string;
+  // novos campos (camelCase) esperados na nova rota
+  totalUsuarios?: number;
+  cadastros?: {
+    hoje?: number;
+    ultimos7dias?: number;
+    ultimos30dias?: number;
+  };
+  vendas?: {
+    totalConfirmadas?: number;
+    hoje?: number;
+    valorHoje?: string;
+    valorTotal?: string;
+    valorReembolsos?: string; // campo de reembolsos solicitado
+    valorPedidosHoje?: string;
+  };
+  conversao?: {
+    taxaGeral?: string;
+    taxaHoje?: string;
+  };
+  ticketMedio?: string;
+  periodoAnalise?: {
+    dataAtual?: string;
+    inicio7dias?: string;
+    inicio30dias?: string;
+  };
   taxa_conversao_geral: number;
   taxa_conversao_hoje: number;
   ticket_medio: number;

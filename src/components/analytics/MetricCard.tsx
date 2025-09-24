@@ -9,7 +9,7 @@ import { TrendingUp, TrendingDown, Minus } from "lucide-react";
 interface MetricCardProps {
   title: string;
   value: string | number | React.ReactNode;
-  subtitle?: string;
+  subtitle?: string | React.ReactNode;
   trend?: {
     value: number;
     isPositive: boolean;
@@ -80,9 +80,9 @@ export function MetricCard({
         </div>
         
         {subtitle && (
-          <p className="text-xs text-muted-foreground mb-2">
-            {subtitle}
-          </p>
+          <div className="text-xs text-muted-foreground mb-2 space-y-0">
+            {typeof subtitle === 'string' ? <p>{subtitle}</p> : subtitle}
+          </div>
         )}
         
         {trend && (

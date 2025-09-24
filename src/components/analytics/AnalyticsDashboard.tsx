@@ -55,6 +55,30 @@ export function AnalyticsDashboard() {
     );
   }
 
+  // Normalizar dados para suportar estrutura antiga (snake_case) e nova (camelCase)
+  const regNorm = {
+    totalUsuarios: registrations?.totalUsuarios ?? registrations?.total_usuarios ?? 0,
+    cadastros: {
+      hoje: registrations?.cadastros?.hoje ?? registrations?.cadastros_hoje ?? 0,
+      ultimos7dias: registrations?.cadastros?.ultimos7dias ?? registrations?.cadastros_7_dias ?? 0,
+      ultimos30dias: registrations?.cadastros?.ultimos30dias ?? registrations?.cadastros_30_dias ?? 0,
+    },
+    vendas: {
+      totalConfirmadas: registrations?.vendas?.totalConfirmadas ?? registrations?.vendas_confirmadas ?? 0,
+      hoje: registrations?.vendas?.hoje ?? registrations?.vendas_hoje ?? 0,
+      valorHoje: registrations?.vendas?.valorHoje ?? registrations?.valor_vendas_confirmadas_hoje_formatado ?? 'R$ 0,00',
+      valorTotal: registrations?.vendas?.valorTotal ?? registrations?.valor_total_vendas_hoje_formatado ?? 'R$ 0,00',
+      valorReembolsos: registrations?.vendas?.valorReembolsos ?? (registrations as any)?.valor_reembolsos_formatado ?? null,
+      valorPedidosHoje: registrations?.vendas?.valorPedidosHoje ?? (registrations as any)?.valor_pedidos_hoje_formatado ?? null,
+    },
+    conversao: {
+      taxaGeral: registrations?.conversao?.taxaGeral ?? (registrations?.taxa_conversao_geral ? String(registrations.taxa_conversao_geral) + '%' : undefined),
+      taxaHoje: registrations?.conversao?.taxaHoje ?? (registrations?.taxa_conversao_hoje ? String(registrations.taxa_conversao_hoje) + '%' : undefined),
+    },
+    ticketMedio: registrations?.ticketMedio ?? registrations?.ticket_medio_formatado ?? 'R$ 0,00',
+    periodoAnalise: registrations?.periodoAnalise ?? registrations?.periodo_analise ?? null,
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -82,21 +106,32 @@ export function AnalyticsDashboard() {
           <p className="text-sm text-green-700 mt-1">Desde o Lançamento</p>
         </div>
 
-        <div className="flex items-baseline gap-2">
-          <div className="text-5xl md:text-6xl font-bold text-green-950">
-            {loadingReg ? <Skeleton className="h-10 w-48" /> : (registrations?.valor_efetivamente_pago_formatado || 'R$ 0,00')}
+          <div className="flex flex-col items-end gap-2">
+            <div className="flex items-baseline gap-2">
+              <div className="text-5xl md:text-6xl font-bold text-green-950">
+                {loadingReg ? <Skeleton className="h-10 w-48" /> : (
+                  regNorm.vendas.valorTotal || registrations?.valor_efetivamente_pago_formatado || 'R$ 0,00'
+                )}
+              </div>
+              <span className="text-sm text-green-800">total</span>
+            </div>
+
+            {/* Mostrar valor de reembolsos abaixo do valor total se disponível */}
+            {(!loadingReg && regNorm.vendas.valorReembolsos) && (
+              <div className="text-sm text-green-800">
+                *Valor de {regNorm.vendas.valorReembolsos} em Rembolsos
+              </div>
+            )}
           </div>
-          <span className="text-sm text-green-800">total</span>
-        </div>
       </div>
 
       {/* Subcards internos */}
       <div className="mt-8 grid grid-cols-1 sm:grid-cols-4 gap-4">
         {[
-          { label: "Pedidos", value: registrations?.vendas_confirmadas },
-          { label: "Ticket Médio", value: registrations?.ticket_medio_formatado },
-          { label: "Conversão", value: registrations?.taxa_conversao_geral + "%" },
-          { label: "Cadastros Totais", value: registrations?.total_usuarios  },
+          { label: "Pedidos", value: regNorm.vendas.totalConfirmadas },
+          { label: "Ticket Médio", value: regNorm.ticketMedio },
+          { label: "Conversão", value: regNorm.conversao.taxaGeral || (registrations?.taxa_conversao_geral ? String(registrations.taxa_conversao_geral) + '%' : '0%') },
+          { label: "Cadastros Totais", value: regNorm.totalUsuarios  },
         ].map((item) => (
           <div
             key={item.label}
@@ -121,7 +156,7 @@ export function AnalyticsDashboard() {
       <div className="grid gap-4 md:grid-cols-3">
         <MetricCard
           title="Cadastros Hoje"
-          value={loadingReg ? <Skeleton className="h-6 w-12" /> : (registrations?.cadastros_hoje || 0)}
+          value={loadingReg ? <Skeleton className="h-6 w-12" /> : (regNorm.cadastros.hoje || 0)}
           subtitle="Novos usuários hoje"
           icon={<Calendar className="h-4 w-4" />}
         />
@@ -129,8 +164,8 @@ export function AnalyticsDashboard() {
         <MetricCard
           title={`Cadastros (${selectedPeriod})`}
           value={loadingReg ? <Skeleton className="h-6 w-12" /> : 
-        selectedPeriod === '7d' ? (registrations?.cadastros_7_dias || 0) :
-        (registrations?.cadastros_7_dias || 0)
+        selectedPeriod === '7d' ? (regNorm.cadastros.ultimos7dias || 0) :
+        (regNorm.cadastros.ultimos30dias || 0)
           }
           subtitle={`Novos no período de ${selectedPeriod}`}
           icon={<TrendingUp className="h-4 w-4" />}
@@ -138,21 +173,21 @@ export function AnalyticsDashboard() {
 
         <MetricCard
           title="Vendas Hoje"
-          value={loadingReg ? <Skeleton className="h-6 w-12" /> : (registrations?.vendas_hoje || 0)}
+          value={loadingReg ? <Skeleton className="h-6 w-12" /> : (regNorm.vendas.hoje || 0)}
           subtitle="Vendas confirmadas hoje"
           icon={<BarChart3 className="h-4 w-4" />}
         />
 
         <MetricCard
           title="Valor de Vendas"
-          value={loadingReg ? <Skeleton className="h-6 w-12" /> : (registrations?.valor_vendas_confirmadas_hoje_formatado || 0)}
+          value={loadingReg ? <Skeleton className="h-6 w-12" /> : (regNorm.vendas.valorHoje || 'R$ 0,00')}
           subtitle="Vendas confirmadas hoje"
           icon={<DollarSign className="h-4 w-4" />}
         />
 
         <MetricCard
           title="Valor Total"
-          value={loadingReg ? <Skeleton className="h-6 w-12" /> : (registrations?.valor_total_vendas_hoje_formatado || 0)}
+          value={loadingReg ? <Skeleton className="h-6 w-12" /> : (regNorm.vendas.valorPedidosHoje || 'R$ 0,00')}
           subtitle="Vendas totais de hoje"
           icon={<ShoppingCart className="h-4 w-4" />}
         />
@@ -160,13 +195,19 @@ export function AnalyticsDashboard() {
         {/* Card de Conversão Diária */}
        <MetricCard
           title="Taxa de Conversão Hoje"
-          value={loadingReg ? <Skeleton className="h-6 w-12" /> : (registrations?.taxa_conversao_hoje + "%" || '0%')}
+          value={loadingReg ? <Skeleton className="h-6 w-12" /> : (regNorm.conversao.taxaHoje || '0%')}
           subtitle="Comparado à taxa geral"
-          trend={registrations && {
-            value: registrations.taxa_conversao_hoje,
-            isPositive: registrations.taxa_conversao_hoje > registrations.taxa_conversao_geral,
-            label: ""
-          }}
+          trend={(() => {
+            if (!registrations) return undefined as any;
+            // prefer número original se disponível
+            const hojeNum = typeof registrations.taxa_conversao_hoje === 'number' ? registrations.taxa_conversao_hoje : (regNorm.conversao.taxaHoje ? parseFloat(String(regNorm.conversao.taxaHoje).replace('%','').replace(',','.')) : 0);
+            const geralNum = typeof registrations.taxa_conversao_geral === 'number' ? registrations.taxa_conversao_geral : (regNorm.conversao.taxaGeral ? parseFloat(String(regNorm.conversao.taxaGeral).replace('%','').replace(',','.')) : 0);
+            return {
+              value: hojeNum,
+              isPositive: hojeNum > geralNum,
+              label: ""
+            };
+          })()}
           icon={<BarChart3 className="h-4 w-4" />}
         />
       </div>

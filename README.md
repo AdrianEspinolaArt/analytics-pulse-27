@@ -67,7 +67,8 @@ src/
 ├── utils/
 │   └── formatters.ts             # Formatadores PT-BR
 └── docs/
-    └── analytics-api.md          # Documentação da API
+   ├── analytics-api.md          # Documentação da API
+   └── frontend-business-rules.md # Regras de negócio do frontend
 ```
 
 ## 🔧 Configuração
@@ -123,5 +124,9 @@ O dashboard carrega automaticamente ao abrir a aplicação. Use os filtros no ca
 - **Bundle**: Code splitting automático
 
 ---
+
+## 📚 Documentação adicional
+
+- `docs/frontend-business-rules.md` — Regras de negócio do frontend (contratos de componentes, cache, formatação, UX, exportações).
 
 Desenvolvido com ❤️ usando as melhores práticas de desenvolvimento frontend.
