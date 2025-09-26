@@ -155,6 +155,7 @@ export interface RegistersResponse {
     plan: string | null;
     recurring: boolean | null;
     status: string | null;
+    paymentProcessed: boolean | null;
     saleDate: string | null;
     phone: string | null;
     email: string | null;
@@ -162,6 +163,26 @@ export interface RegistersResponse {
     hasPurchase: boolean;
   }>;
 }
+
+// Status possíveis para os registros
+export type PaymentStatus = 
+  | 'PAID'
+  | 'PENDING' 
+  | 'EXPIRED'
+  | 'REFUSED'
+  | 'CANCELED'
+  | 'REFUNDED'
+  | string; // Permite outros status que possam ser adicionados
+
+// Métodos de pagamento possíveis
+export type PaymentMethod =
+  | 'CREDIT_CARD'
+  | 'SUBSCRIPTION'
+  | 'BILLET'
+  | 'PIX'
+  | 'GIFT'
+  | 'IN_APP'
+  | string; // Permite outros métodos que possam ser adicionados
 
 // Helper types for periods
 export type Period = '7d' | '15d' | '30d' | '6m' | '3m' | 'daily';
