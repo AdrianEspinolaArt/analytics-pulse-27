@@ -11,6 +11,7 @@ import type {
   CustomerAnalyticsDto,
   UserStreaksListDto,
   RegistersResponse,
+  RegistersOrderBy,
 } from '@/types/analytics';
 
 // Cache keys
@@ -20,7 +21,7 @@ const QUERY_KEYS = {
   sales: (period?: string) => ['analytics', 'sales', period] as const,
   customers: () => ['analytics', 'customers'] as const,
   userStreaks: () => ['analytics', 'user-streaks'] as const,
-  registers: (limit?: number, skip?: number) => ['analytics', 'registers', limit, skip] as const,
+  registers: (limit?: number, skip?: number, orderBy?: RegistersOrderBy) => ['analytics', 'registers', limit, skip, orderBy] as const,
 };
 
 // Hook for registration metrics
@@ -50,7 +51,7 @@ export function useSales(period?: string) {
     queryFn: () => analyticsApi.sales(period) as Promise<SalesChartDto>,
     staleTime: period && period.endsWith('d') && parseInt(period) <= 7 ? 60 * 1000 : 5 * 60 * 1000,
     refetchInterval: 5 * 60 * 1000,
-    enabled: !period || !period.includes('m'), // Only for daily data
+  enabled: !period?.includes('m'), // Only for daily data
   });
 }
 
@@ -61,7 +62,7 @@ export function useSalesMonthly(period?: string) {
     queryFn: () => analyticsApi.sales(period) as Promise<SalesMonthlyChartDto>,
     staleTime: 10 * 60 * 1000, // 10 minutes for monthly data
     refetchInterval: 10 * 60 * 1000,
-    enabled: period?.includes('m') || false, // Only for monthly data (6m, 3m, etc)
+  enabled: Boolean(period?.includes('m')), // Only for monthly data (6m, 3m, etc)
   });
 }
 
@@ -86,10 +87,10 @@ export function useUserStreaks() {
 }
 
 // Hook for registers with pagination
-export function useRegisters(limit?: number, skip?: number) {
+export function useRegisters(limit?: number, skip?: number, orderBy: RegistersOrderBy = 'registration') {
   return useQuery({
-    queryKey: QUERY_KEYS.registers(limit, skip),
-    queryFn: () => analyticsApi.registers(limit, skip) as Promise<RegistersResponse>,
+    queryKey: QUERY_KEYS.registers(limit, skip, orderBy),
+    queryFn: () => analyticsApi.registers(limit, skip, orderBy) as Promise<RegistersResponse>,
     staleTime: 60 * 1000, // 1 minute
     refetchInterval: 5 * 60 * 1000,
     placeholderData: keepPreviousData, // Smooth pagination transitions

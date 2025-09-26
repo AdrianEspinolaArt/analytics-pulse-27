@@ -184,6 +184,8 @@ export type PaymentMethod =
   | 'IN_APP'
   | string; // Permite outros métodos que possam ser adicionados
 
+export type RegistersOrderBy = 'registration' | 'purchase';
+
 // Helper types for periods
 export type Period = '7d' | '15d' | '30d' | '6m' | '3m' | 'daily';
 export type SalesGranularity = 'daily' | 'monthly';

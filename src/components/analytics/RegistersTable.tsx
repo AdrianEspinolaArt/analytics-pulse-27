@@ -4,10 +4,12 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Users, ChevronLeft, ChevronRight, CheckCircle, XCircle } from "lucide-react";
 import { useRegisters } from "@/hooks/use-analytics";
 import { cn } from "@/lib/utils";
 import { analyticsApi } from "@/lib/api";
+import type { RegistersOrderBy, RegistersResponse } from "@/types/analytics";
 
 interface RegistersTableProps {
   className?: string;
@@ -113,13 +115,59 @@ const recorrenciaChip = (value: boolean | null) => {
   }
 };
 
+// ---------- Ordering helpers ----------
+
+const parsePtBrDate = (value: string | null) => {
+  if (!value) return null;
+
+  const match = value.match(/(\d{2})\/(\d{2})\/(\d{4})(?:\D+(\d{2}):(\d{2})(?::(\d{2}))?)?/);
+  if (match) {
+    const [, day, month, year, hour = "0", minute = "0", second = "0"] = match;
+    const parsedDate = new Date(
+      Number(year),
+      Number(month) - 1,
+      Number(day),
+      Number(hour),
+      Number(minute),
+      Number(second)
+    );
+    if (!Number.isNaN(parsedDate.getTime())) {
+      return parsedDate;
+    }
+  }
+
+  const timestamp = Date.parse(value);
+  return Number.isNaN(timestamp) ? null : new Date(timestamp);
+};
+
+const sortBySaleDateDesc = <T extends { saleDate: string | null }>(rows: ReadonlyArray<T>) => {
+  return [...rows].sort((a, b) => {
+    const dateA = parsePtBrDate(a.saleDate);
+    const dateB = parsePtBrDate(b.saleDate);
+
+    if (!dateA && !dateB) return 0;
+    if (!dateA) return 1;
+    if (!dateB) return -1;
+    return dateB.getTime() - dateA.getTime();
+  });
+};
+
 // ---------- Component ----------
 
 export function RegistersTable({ className }: Readonly<RegistersTableProps>) {
   const [currentPage, setCurrentPage] = useState(0);
+  const [orderBy, setOrderBy] = useState<RegistersOrderBy>('registration');
   const [isExporting, setIsExporting] = useState(false);
   const skeletonKeys = useMemo(() => Array.from({ length: PAGE_SIZE }).map(() => Math.random().toString(36).slice(2)), []);
-  const { data, isLoading, isError, error } = useRegisters(PAGE_SIZE, currentPage * PAGE_SIZE);
+  const { data, isLoading, isError, error } = useRegisters(PAGE_SIZE, currentPage * PAGE_SIZE, orderBy);
+
+  const rows = useMemo(() => {
+    const currentRows = data?.rows ?? [];
+    if (orderBy === 'purchase') {
+      return sortBySaleDateDesc(currentRows);
+    }
+    return currentRows;
+  }, [data?.rows, orderBy]);
 
   const totalPages = data ? Math.ceil(data.total / PAGE_SIZE) : 0;
   const hasNextPage = currentPage < totalPages - 1;
@@ -152,6 +200,25 @@ export function RegistersTable({ className }: Readonly<RegistersTableProps>) {
           </CardDescription>
         </div>
         <div className="flex items-center gap-2">
+          <span className="text-xs font-medium text-muted-foreground hidden sm:inline">Ordenar por:</span>
+          <ToggleGroup
+            type="single"
+            value={orderBy}
+            onValueChange={(value) => {
+              if (!value) return;
+              setOrderBy(value as RegistersOrderBy);
+              setCurrentPage(0);
+            }}
+            className="border rounded-md p-1"
+            aria-label="Ordenar registros"
+          >
+            <ToggleGroupItem value="registration" className="text-xs sm:text-sm">
+              Cadastros
+            </ToggleGroupItem>
+            <ToggleGroupItem value="purchase" className="text-xs sm:text-sm">
+              Compras
+            </ToggleGroupItem>
+          </ToggleGroup>
           <Button
             size="sm"
             variant="ghost"
@@ -211,46 +278,47 @@ function simplifyPlan(plan: string): string | null {
 }
 
                 // Busca todos os registros paginando até obter todos
-                const allRows: Array<Record<string, any>> = [];
+                const rawRows: RegistersResponse["rows"] = [];
                 let skip = 0;
                 const limit = 500;
 
                 while (true) {
-                  // @ts-ignore
-                  const res = await analyticsApi.registers(limit, skip);
-                  if (!res?.rows) break;
+                  const res = await analyticsApi.registers(limit, skip, orderBy);
+                  if (!res?.rows?.length) break;
 
-const normalizedRows = res.rows.map(row => {
-  const isGratuito = row.paymentMethod === "GIFT" || row.plan === "TRIAL";
-
-  return {
-    "Nome Completo": normalizeValue(formatName(row.name)),
-    "CPF": normalizeValue(row.cpf),
-    "Valor": normalizeValue(row.value),
-    "Método de Pagamento": isGratuito ? "Gratuito" : normalizeValue(translatePaymentMethod(row.paymentMethod)),
-    "Plano": isGratuito ? "Gratuito" : normalizeValue(simplifyPlan(row.plan)),
-    "Recorrente": row.recurring ? "Sim" : "Não",
-    "Status": normalizeValue(translateStatus(row.status)),
-    "Pagamento Processado": row.paymentProcessed ? "Processado" : "Pendente",
-    "Data da Venda": normalizeValue(row.saleDate),
-    "Telefone": normalizeValue(row.phone),
-    "Email": normalizeValue(row.email),
-    "Data de Cadastro": normalizeValue(row.registeredAt),
-    "Tem Compra": row.hasPurchase ? "Sim" : "Não"
-  };
-});
-
-                  allRows.push(...normalizedRows);
+                  rawRows.push(...res.rows);
                   skip += limit;
 
-                  if (allRows.length >= (res.total ?? allRows.length)) break;
+                  if (rawRows.length >= (res.total ?? rawRows.length)) break;
                   if (res.rows.length < limit) break;
                 }
 
-                if (allRows.length === 0) {
+                if (rawRows.length === 0) {
                   setIsExporting(false);
                   return;
                 }
+
+                const orderedRows = orderBy === 'purchase' ? sortBySaleDateDesc(rawRows) : rawRows;
+
+                const allRows = orderedRows.map(row => {
+                  const isGratuito = row.paymentMethod === "GIFT" || row.plan === "TRIAL";
+
+                  return {
+                    "Nome Completo": normalizeValue(formatName(row.name)),
+                    "CPF": normalizeValue(row.cpf),
+                    "Valor": normalizeValue(row.value),
+                    "Método de Pagamento": isGratuito ? "Gratuito" : normalizeValue(translatePaymentMethod(row.paymentMethod)),
+                    "Plano": isGratuito ? "Gratuito" : normalizeValue(simplifyPlan(row.plan)),
+                    "Recorrente": row.recurring ? "Sim" : "Não",
+                    "Status": normalizeValue(translateStatus(row.status)),
+                    "Pagamento Processado": row.paymentProcessed ? "Processado" : "Pendente",
+                    "Data da Venda": normalizeValue(row.saleDate),
+                    "Telefone": normalizeValue(row.phone),
+                    "Email": normalizeValue(row.email),
+                    "Data de Cadastro": normalizeValue(row.registeredAt),
+                    "Tem Compra": row.hasPurchase ? "Sim" : "Não"
+                  };
+                });
 
                 // import xlsx dinamicamente
                 let xlsxModule: any = null;
@@ -336,15 +404,15 @@ const normalizedRows = res.rows.map(row => {
                 if (isLoading) {
                   return Array.from({ length: PAGE_SIZE }).map((_, i) => (
                     <TableRow key={skeletonKeys[i]}>
-                      {Array.from({ length: 9 }).map((_, j) => (
+                      {Array.from({ length: 8 }).map((_, j) => (
                         <TableCell key={`${skeletonKeys[i]}-${j}`}>
                           <Skeleton className="h-4 w-24" />
                         </TableCell>
                       ))}
                     </TableRow>
                   ));
-                } else if (data?.rows?.length) {
-                  return data.rows.map((register) => {
+                } else if (rows.length) {
+                  return rows.map((register) => {
                     const key =
                       [register.email, register.name, register.cpf, register.phone].filter(Boolean).join("-") ||
                       Math.random().toString();
@@ -379,7 +447,7 @@ const normalizedRows = res.rows.map(row => {
                 } else {
                   return (
                     <TableRow>
-                      <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
+                      <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
                         Nenhum registro encontrado
                       </TableCell>
                     </TableRow>

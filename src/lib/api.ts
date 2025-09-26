@@ -1,3 +1,5 @@
+import type { RegistersOrderBy } from '@/types/analytics';
+
 // Centralized HTTP client for Analytics API
 // Handles timeout, error handling, and type safety
 
@@ -56,5 +58,5 @@ export const analyticsApi = {
   sales: (period?: string) => apiGet('/analytics/sales', { period }),
   customers: () => apiGet('/analytics/customers'),
   userStreaks: () => apiGet('/analytics/user-streaks'),
-  registers: (limit?: number, skip?: number) => apiGet('/analytics/registers', { limit, skip }),
+  registers: (limit?: number, skip?: number, orderBy?: RegistersOrderBy) => apiGet('/analytics/registers', { limit, skip, orderBy }),
 } as const;
