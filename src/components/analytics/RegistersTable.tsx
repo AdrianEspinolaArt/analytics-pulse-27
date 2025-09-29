@@ -268,6 +268,14 @@ function translateStatus(status: string): string | null {
     default: return status;
   }
 }
+function parseDateBR(v: string | null): Date | null {
+  if (!v) return null;
+  const parts = v.split("/");
+  if (parts.length !== 3) return null;
+  const [day, month, year] = parts.map(p => parseInt(p, 10));
+  if (!day || !month || !year) return null;
+  return new Date(year, month - 1, day); // JS: mês começa do 0
+}
 
 function simplifyPlan(plan: string): string | null {
   if (!plan) return null;
@@ -288,26 +296,32 @@ function simplifyPlan(plan: string): string | null {
 
                 const orderedRows = orderBy === 'purchase' ? sortBySaleDateDesc(rawRows) : rawRows;
 
-                const allRows = orderedRows.map(row => {
-                  const isGratuito = row.paymentMethod === "GIFT" || row.plan === "TRIAL";
+               const allRows = orderedRows.map(row => {
+  const isGratuito = row.paymentMethod === "GIFT" || row.plan === "TRIAL";
 
-                  return {
-                    "Nome Completo": normalizeValue(formatName(row.name)),
-                    "CPF": normalizeValue(row.cpf),
-                    "Valor": normalizeValue(row.value),
-                    "Método de Pagamento": isGratuito ? "Gratuito" : normalizeValue(translatePaymentMethod(row.paymentMethod)),
-                    "Plano": isGratuito ? "Gratuito" : normalizeValue(simplifyPlan(row.plan)),
-                    "Recorrente": row.recurring ? "Sim" : "Não",
-                    "Status": normalizeValue(translateStatus(row.status)),
-                    "Pagamento Processado": row.paymentProcessed ? "Processado" : "Pendente",
-                    "Data da Venda": normalizeValue(row.saleDate),
-                    "Telefone": normalizeValue(row.phone),
-                    "Email": normalizeValue(row.email),
-                    "Data de Cadastro": normalizeValue(row.registeredAt),
-                    "Tem Compra": row.hasPurchase ? "Sim" : "Não"
-                  };
-                });
+  function formatDate(v: string | Date | null): string | null {
+    if (!v) return null;
+    const d = new Date(v);
+    if (isNaN(d.getTime())) return null;
+    return d.toLocaleDateString("pt-BR"); // gera texto legível (29/09/2025)
+  }
 
+  return {
+  "Nome Completo": normalizeValue(formatName(row.name)),
+  "CPF": normalizeValue(row.cpf),
+  "Valor": row.value ? Number(row.value) : null, // número real
+  "Método de Pagamento": isGratuito ? "Gratuito" : normalizeValue(translatePaymentMethod(row.paymentMethod)),
+  "Plano": isGratuito ? "Gratuito" : normalizeValue(simplifyPlan(row.plan)),
+  "Recorrente": row.recurring ? "Sim" : "Não",
+  "Status": normalizeValue(translateStatus(row.status)),
+  "Pagamento Processado": row.paymentProcessed ? "Processado" : "Pendente",
+  "Telefone": normalizeValue(row.phone),
+  "Email": normalizeValue(row.email),
+  "Data de Cadastro": row.registeredAt ? parseDateBR(row.registeredAt) : null, // vira Date válido
+  "Data da Venda": row.saleDate ? parseDateBR(row.saleDate) : null,           // vira Date válido
+  "Tem Compra": row.hasPurchase ? "Sim" : "Não"
+};
+});
                 // import xlsx dinamicamente
                 let xlsxModule: any = null;
                 try {
@@ -382,8 +396,8 @@ function simplifyPlan(plan: string): string | null {
                 <TableHead>Recorrência</TableHead>
                 <TableHead>Status da Compra</TableHead>
                 <TableHead>Pago</TableHead>
-                <TableHead>Data da Compra</TableHead>
                 <TableHead>Data Cadastro</TableHead>
+                <TableHead>Data da Compra</TableHead>
               </TableRow>
             </TableHeader>
 
@@ -427,8 +441,8 @@ function simplifyPlan(plan: string): string | null {
                         <TableCell>{recorrenciaChip(register.recurring)}</TableCell>
                         <TableCell>{statusChip(register.status)}</TableCell>
                         <TableCell>{paymentProcessedChip(register.paymentProcessed)}</TableCell>
-                        <TableCell>{register.saleDate || "—"}</TableCell>
                         <TableCell>{register.registeredAt || "—"}</TableCell>
+                        <TableCell>{register.saleDate || "—"}</TableCell>
                       </TableRow>
                     );
                   });
