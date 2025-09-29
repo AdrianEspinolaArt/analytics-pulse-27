@@ -12,6 +12,7 @@ import type {
   UserStreaksListDto,
   RegistersResponse,
   RegistersOrderBy,
+  PlanSummary,
 } from '@/types/analytics';
 
 // Cache keys
@@ -22,6 +23,7 @@ const QUERY_KEYS = {
   customers: () => ['analytics', 'customers'] as const,
   userStreaks: () => ['analytics', 'user-streaks'] as const,
   registers: (limit?: number, skip?: number, orderBy?: RegistersOrderBy) => ['analytics', 'registers', limit, skip, orderBy] as const,
+  plans: () => ['analytics', 'plans'] as const,
 };
 
 // Hook for registration metrics
@@ -51,7 +53,7 @@ export function useSales(period?: string) {
     queryFn: () => analyticsApi.sales(period) as Promise<SalesChartDto>,
     staleTime: period && period.endsWith('d') && parseInt(period) <= 7 ? 60 * 1000 : 5 * 60 * 1000,
     refetchInterval: 5 * 60 * 1000,
-  enabled: !period?.includes('m'), // Only for daily data
+    enabled: !period?.includes('m'), // Only for daily data
   });
 }
 
@@ -62,7 +64,7 @@ export function useSalesMonthly(period?: string) {
     queryFn: () => analyticsApi.sales(period) as Promise<SalesMonthlyChartDto>,
     staleTime: 10 * 60 * 1000, // 10 minutes for monthly data
     refetchInterval: 10 * 60 * 1000,
-  enabled: Boolean(period?.includes('m')), // Only for monthly data (6m, 3m, etc)
+    enabled: Boolean(period?.includes('m')), // Only for monthly data (6m, 3m, etc)
   });
 }
 
@@ -94,5 +96,15 @@ export function useRegisters(limit?: number, skip?: number, orderBy: RegistersOr
     staleTime: 60 * 1000, // 1 minute
     refetchInterval: 5 * 60 * 1000,
     placeholderData: keepPreviousData, // Smooth pagination transitions
+  });
+}
+
+// Hook for plans summary
+export function usePlans() {
+  return useQuery({
+    queryKey: QUERY_KEYS.plans(),
+    queryFn: () => analyticsApi.plans() as Promise<PlanSummary[]>,
+    staleTime: 10 * 60 * 1000,
+    refetchInterval: 10 * 60 * 1000,
   });
 }

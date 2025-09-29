@@ -23,7 +23,7 @@ export default function RecurringMetrics() {
 
   const { data, isLoading, isError, error } = useQuery<RecurringMetricsDto>({
     queryKey: ["analytics", "recurringmetrics", selectedMonth],
-    queryFn: () => apiGet<RecurringMetricsDto>("/analytics/recurringmetrics", { month: selectedMonth }),
+    queryFn: () => apiGet<RecurringMetricsDto>("/analytics/subscriptions", { month: selectedMonth }),
     staleTime: 5 * 60 * 1000,
   });
 

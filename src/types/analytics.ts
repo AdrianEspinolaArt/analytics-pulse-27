@@ -145,6 +145,17 @@ export interface UserStreaksListDto {
   lastUpdated: string;
 }
 
+export interface PlanSummary {
+  id: string;
+  name: string;
+  durationDays: number;
+  totalUsers: number;
+  totalValue: number;
+  totalValueFormatted: string;
+  averageTicket: number;
+  averageTicketFormatted: string;
+}
+
 export interface RegistersResponse {
   total: number;
   rows: Array<{

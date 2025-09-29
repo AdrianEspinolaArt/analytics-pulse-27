@@ -78,7 +78,7 @@ function parseCurrency(value?: string) {
 export default function PaymentMethodsChart() {
   const { data, isLoading, isError, error } = useQuery<PaymentMethodsDto>({
     queryKey: ["analytics", "paymentmethods"],
-    queryFn: () => apiGet<PaymentMethodsDto>("/analytics/paymentmetrics"),
+    queryFn: () => apiGet<PaymentMethodsDto>("/analytics/payments"),
     staleTime: 5 * 60 * 1000,
     refetchInterval: 5 * 60 * 1000,
   });

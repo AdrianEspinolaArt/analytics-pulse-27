@@ -9,7 +9,7 @@ import { Users, ChevronLeft, ChevronRight, CheckCircle, XCircle } from "lucide-r
 import { useRegisters } from "@/hooks/use-analytics";
 import { cn } from "@/lib/utils";
 import { analyticsApi } from "@/lib/api";
-import type { RegistersOrderBy, RegistersResponse } from "@/types/analytics";
+import type { RegistersOrderBy } from "@/types/analytics";
 
 interface RegistersTableProps {
   className?: string;
@@ -278,20 +278,8 @@ function simplifyPlan(plan: string): string | null {
 }
 
                 // Busca todos os registros paginando até obter todos
-                const rawRows: RegistersResponse["rows"] = [];
-                let skip = 0;
-                const limit = 500;
-
-                while (true) {
-                  const res = await analyticsApi.registers(limit, skip, orderBy);
-                  if (!res?.rows?.length) break;
-
-                  rawRows.push(...res.rows);
-                  skip += limit;
-
-                  if (rawRows.length >= (res.total ?? rawRows.length)) break;
-                  if (res.rows.length < limit) break;
-                }
+                const res = await analyticsApi.fetchAllRegisters(orderBy);
+                const rawRows = res.rows ?? [];
 
                 if (rawRows.length === 0) {
                   setIsExporting(false);
