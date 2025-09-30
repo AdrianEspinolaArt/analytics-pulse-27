@@ -196,7 +196,7 @@ export function RegistersTable({ className }: Readonly<RegistersTableProps>) {
             Tabela de Vendas
           </CardTitle>
           <CardDescription>
-            {data ? `${data.total.toLocaleString("pt-BR")} Vendas Registradas` : "Carregando..."}
+            {data ? `${data.total.toLocaleString("pt-BR")} Registros` : "Carregando..."}
           </CardDescription>
         </div>
         <div className="flex items-center gap-2">
