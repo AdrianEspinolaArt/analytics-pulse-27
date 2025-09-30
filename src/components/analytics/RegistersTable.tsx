@@ -193,10 +193,10 @@ export function RegistersTable({ className }: Readonly<RegistersTableProps>) {
         <div>
           <CardTitle className="text-lg font-semibold flex items-center gap-2">
             <Users className="h-5 w-5" />
-            Registros de Usuários
+            Tabela de Vendas
           </CardTitle>
           <CardDescription>
-            {data ? `${data.total.toLocaleString("pt-BR")} usuários cadastrados` : "Carregando..."}
+            {data ? `${data.total.toLocaleString("pt-BR")} Vendas Registradas` : "Carregando..."}
           </CardDescription>
         </div>
         <div className="flex items-center gap-2">
@@ -464,7 +464,7 @@ function simplifyPlan(plan: string): string | null {
         {data && totalPages > 1 && (
           <div className="flex items-center justify-between mt-4">
             <div className="text-sm text-muted-foreground">
-              Página {currentPage + 1} de {totalPages} • {data.total.toLocaleString("pt-BR")} registros
+              Página {currentPage + 1} de {totalPages} • {data.total.toLocaleString("pt-BR")} vendas
             </div>
             <div className="flex gap-2">
               <Button variant="outline" size="sm" onClick={() => setCurrentPage((prev) => prev - 1)} disabled={!hasPreviousPage}>
