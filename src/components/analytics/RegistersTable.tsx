@@ -36,6 +36,8 @@ const gratuitoChip = () => (
 
 const paymentMethodChip = (value: string | null) => {
   switch (value) {
+    case "MAXIPAGO_CREDIT_CARD":
+      return <Badge className="bg-indigo-100 text-indigo-700 border-indigo-200">MaxiPago Crédito</Badge>;
     case "CREDIT_CARD":
       return <Badge className="bg-purple-100 text-purple-700 border-purple-200">Crédito</Badge>;
     case "SUBSCRIPTION":

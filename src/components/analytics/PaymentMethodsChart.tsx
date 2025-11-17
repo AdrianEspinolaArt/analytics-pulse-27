@@ -58,6 +58,7 @@ const PAYMENT_LABELS: Record<string, string> = {
   PIX: "PIX",
   SUBSCRIPTION: "Assinatura",
   CREDIT_CARD: "Crédito",
+  MAXIPAGO_CREDIT_CARD: "MaxiPago Crédito",
   IN_APP: "In App",
 };
 
