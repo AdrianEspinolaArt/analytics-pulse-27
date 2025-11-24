@@ -25,6 +25,8 @@ export async function apiGet<T = any>(
     });
   }
 
+  console.log('🌐 API Request:', url.toString());
+
   // Setup abort controller with 15s timeout
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 15000);
@@ -150,7 +152,15 @@ function normalizePlanRecord(raw: PlanApiRecord): PlanSummary {
 }
 
 async function fetchRegistersPage(limit?: number, skip?: number, orderBy?: RegistersOrderBy) {
-  return apiGet<RegistersResponse>('/analytics/registrations/records', { limit, skip, orderBy });
+  console.log('🔍 API Call - fetchRegistersPage:', { limit, skip, orderBy });
+  const result = await apiGet<RegistersResponse>('/analytics/registrations/records', { limit, skip, orderBy });
+  console.log('✅ API Response - fetchRegistersPage:', {
+    total: result.total,
+    rowsCount: result.rows?.length,
+    firstEmail: result.rows?.[0]?.email,
+    lastEmail: result.rows?.[result.rows?.length - 1]?.email,
+  });
+  return result;
 }
 
 // Analytics-specific API paths

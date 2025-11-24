@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -36,6 +36,8 @@ const gratuitoChip = () => (
 
 const paymentMethodChip = (value: string | null) => {
   switch (value) {
+    case "MAXIPAGO_SUBSCRIPTION":
+      return <Badge className="bg-pink-100 text-pink-700 border-pink-200">MaxiPago Assinatura</Badge>;
     case "MAXIPAGO_CREDIT_CARD":
       return <Badge className="bg-indigo-100 text-indigo-700 border-indigo-200">MaxiPago Crédito</Badge>;
     case "CREDIT_CARD":
@@ -160,16 +162,34 @@ export function RegistersTable({ className }: Readonly<RegistersTableProps>) {
   const [currentPage, setCurrentPage] = useState(0);
   const [orderBy, setOrderBy] = useState<RegistersOrderBy>('registration');
   const [isExporting, setIsExporting] = useState(false);
+  
+  console.log('🔄 RegistersTable render:', { currentPage, orderBy });
+  
   const skeletonKeys = useMemo(() => Array.from({ length: PAGE_SIZE }).map(() => Math.random().toString(36).slice(2)), []);
   const { data, isLoading, isError, error } = useRegisters(PAGE_SIZE, currentPage * PAGE_SIZE, orderBy);
 
-  const rows = useMemo(() => {
-    const currentRows = data?.rows ?? [];
-    if (orderBy === 'purchase') {
-      return sortBySaleDateDesc(currentRows);
+  // Reset page when orderBy changes
+  useEffect(() => {
+    setCurrentPage(0);
+  }, [orderBy]);
+
+  const rows = data?.rows ?? [];
+
+  // Debug logging
+  useEffect(() => {
+    if (data) {
+      console.log('📊 RegistersTable Data:', {
+        currentPage,
+        skip: currentPage * PAGE_SIZE,
+        limit: PAGE_SIZE,
+        orderBy,
+        totalFromAPI: data.total,
+        rowsReceived: data.rows?.length,
+        allNames: data.rows?.map((r, i) => `[${i}] ${r.name}`),
+        allEmails: data.rows?.map((r, i) => `[${i}] ${r.email}`),
+      });
     }
-    return currentRows;
-  }, [data?.rows, orderBy]);
+  }, [data, currentPage, orderBy]);
 
   const totalPages = data ? Math.ceil(data.total / PAGE_SIZE) : 0;
   const hasNextPage = currentPage < totalPages - 1;
@@ -209,7 +229,6 @@ export function RegistersTable({ className }: Readonly<RegistersTableProps>) {
             onValueChange={(value) => {
               if (!value) return;
               setOrderBy(value as RegistersOrderBy);
-              setCurrentPage(0);
             }}
             className="border rounded-md p-1"
             aria-label="Ordenar registros"
@@ -416,10 +435,9 @@ function simplifyPlan(plan: string): string | null {
                     </TableRow>
                   ));
                 } else if (rows.length) {
-                  return rows.map((register) => {
-                    const key =
-                      [register.email, register.name, register.cpf, register.phone].filter(Boolean).join("-") ||
-                      Math.random().toString();
+                  return rows.map((register, index) => {
+                    // Unique key combining page, index, and data
+                    const key = `page-${currentPage}-row-${index}-${register.email || ''}-${register.cpf || ''}`;
 
                     const isGratuito = register.paymentMethod === "GIFT" || register.plan === "TRIAL";
 

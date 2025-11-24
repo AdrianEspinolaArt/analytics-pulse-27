@@ -59,7 +59,8 @@ const PAYMENT_LABELS: Record<string, string> = {
   SUBSCRIPTION: "Assinatura",
   CREDIT_CARD: "Crédito",
   MAXIPAGO_CREDIT_CARD: "MaxiPago Crédito",
-  IN_APP: "In App",
+  MAXIPAGO_SUBSCRIPTION: "MaxiPago Assinatura",
+  IN_APP: "Apple/Google Pay",
 };
 
 function formatCurrency(value: number) {

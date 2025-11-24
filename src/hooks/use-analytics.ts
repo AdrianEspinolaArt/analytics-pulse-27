@@ -1,7 +1,7 @@
 // React Query hooks for Analytics API
 // Handles caching, loading states, and error handling
 
-import { useQuery, keepPreviousData } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { analyticsApi } from '@/lib/api';
 import type {
   CadastroMetricsDto,
@@ -92,10 +92,15 @@ export function useUserStreaks() {
 export function useRegisters(limit?: number, skip?: number, orderBy: RegistersOrderBy = 'registration') {
   return useQuery({
     queryKey: QUERY_KEYS.registers(limit, skip, orderBy),
-    queryFn: () => analyticsApi.registers(limit, skip, orderBy) as Promise<RegistersResponse>,
-    staleTime: 60 * 1000, // 1 minute
-    refetchInterval: 5 * 60 * 1000,
-    placeholderData: keepPreviousData, // Smooth pagination transitions
+    queryFn: () => {
+      console.log('🎣 useRegisters queryFn called:', { limit, skip, orderBy });
+      return analyticsApi.registers(limit, skip, orderBy) as Promise<RegistersResponse>;
+    },
+    staleTime: 0, // No cache - always fresh data
+    gcTime: 0, // Garbage collect immediately
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
   });
 }
 
