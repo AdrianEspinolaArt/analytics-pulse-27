@@ -1,8 +1,9 @@
 // Qualidade de Conteúdo - Content Quality Dashboard
 
-import { LessonReportsSection } from "@/components/analytics/LessonReportsSection";
+
 import { RemovedSubscriptionsSection } from "@/components/analytics/RemovedSubscriptionsSection";
 import { SurveysSection } from "@/components/analytics/SurveysSection";
+import { QuestionReportsSection } from "@/components/analytics/QuestionReportsSection";
 
 const QualidadeConteudo = () => {
   return (
@@ -18,6 +19,8 @@ const QualidadeConteudo = () => {
       </div>
       </div>
 
+     
+
       {/* Divider */}
       <div className="border-t my-8" />
 
@@ -26,8 +29,11 @@ const QualidadeConteudo = () => {
 
       {/* Divider */}
       <div className="border-t my-8" />
-
-      {/* Surveys Section (Screen Feedback) */}
+{/* Question Reports Section */}
+      <div>
+        <h2 className="text-2xl font-semibold mb-4">Relatórios de Questões</h2>
+        <QuestionReportsSection />
+      </div>
      
     </div>
   );
