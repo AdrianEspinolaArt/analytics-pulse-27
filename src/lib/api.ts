@@ -215,3 +215,11 @@ export const analyticsApi = {
     return response.map((item) => normalizePlanRecord(item as PlanApiRecord));
   },
 } as const;
+
+// Content Quality API paths
+export const contentQualityApi = {
+  lessonReports: (days?: number) => apiGet('/content-quality/lesson-reports', { days }),
+  removedSubscriptions: (days?: number) => apiGet('/content-quality/removed-subscriptions', { days }),
+  surveys: (days?: number) => apiGet('/content-quality/surveys', { days }),
+  questionReports: (page?: number, limit?: number) => apiGet('/content-quality/question-reports', { page, limit }),
+} as const;

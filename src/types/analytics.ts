@@ -200,3 +200,129 @@ export type RegistersOrderBy = 'registration' | 'purchase';
 // Helper types for periods
 export type Period = '7d' | '15d' | '30d' | '6m' | '3m' | 'daily';
 export type SalesGranularity = 'daily' | 'monthly';
+
+// Content Quality Types
+export interface LessonReportsDto {
+  totalReports: number;
+  reportsByPeriod: Array<{
+    date: string;
+    count: number;
+  }>;
+  topReportedLessons: Array<{
+    lesson_id: string;
+    lesson_name: string;
+    report_count: number;
+  }>;
+  topReasons: Array<{
+    reason: string;
+    count: number;
+    percentage: number;
+  }>;
+  metadata: {
+    lastUpdated: string;
+    dataSource: string;
+    period: string;
+  };
+}
+
+export interface RemovedSubscriptionsDto {
+  totalRemoved: number;
+  cancellationReasons: Array<{
+    reason: string;
+    count: number;
+    percentage: number;
+  }>;
+  topCancelledPlans: Array<{
+    plan_id: string;
+    plan_name: string | null;
+    cancellation_count: number;
+  }>;
+  cancellationTrend: Array<{
+    date: string;
+    count: number;
+  }>;
+  churnRate: {
+    period: string;
+    rate: number;
+    total_cancellations: number;
+    total_active_subscriptions: number;
+  };
+  metadata: {
+    lastUpdated: string;
+    dataSource: string;
+    period: string;
+  };
+}
+
+export interface SurveysDto {
+  totalActiveSurveys: number;
+  totalResponses: number;
+  averageRating: number;
+  ratingDistribution: Array<{
+    rating: number;
+    count: number;
+    percentage: number;
+  }>;
+  topSurveys: Array<{
+    survey_id: string;
+    question: string;
+    response_count: number;
+    average_rating: number;
+  }>;
+  responsesByPlatform: Array<{
+    platform: string;
+    count: number;
+    average_rating: number;
+  }>;
+  responseTrend: Array<{
+    date: string;
+    count: number;
+    average_rating: number;
+  }>;
+  recentComments: Array<{
+    survey_id: string;
+    question: string;
+    rating: number;
+    comment: string;
+    platform: string;
+    responded_at: string;
+  }>;
+  metadata: {
+    lastUpdated: string;
+    dataSource: string;
+    period: string;
+  };
+}
+
+export interface QuestionReportsDto {
+  totalReports: number;
+  reportsByStatus: Array<{
+    status: string;
+    count: number;
+    percentage: number;
+  }>;
+  topReasons: Array<{
+    reason: string;
+    count: number;
+    percentage: number;
+  }>;
+  reports: Array<{
+    id_questao: string;
+    motivo: string;
+    'data do reporte': string;
+    'total de reportes': number;
+  }>;
+  pagination: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+    hasNextPage: boolean;
+    hasPreviousPage: boolean;
+  };
+  metadata: {
+    lastUpdated: string;
+    dataSource: string;
+    period: string;
+  };
+}

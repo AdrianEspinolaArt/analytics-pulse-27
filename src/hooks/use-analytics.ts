@@ -3,6 +3,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { analyticsApi } from '@/lib/api';
+import { contentQualityApi } from '@/lib/api';
 import type {
   CadastroMetricsDto,
   ConversionMetricsDto,
@@ -13,6 +14,10 @@ import type {
   RegistersResponse,
   RegistersOrderBy,
   PlanSummary,
+  LessonReportsDto,
+  RemovedSubscriptionsDto,
+  SurveysDto,
+  QuestionReportsDto,
 } from '@/types/analytics';
 
 // Cache keys
@@ -24,6 +29,10 @@ const QUERY_KEYS = {
   userStreaks: () => ['analytics', 'user-streaks'] as const,
   registers: (limit?: number, skip?: number, orderBy?: RegistersOrderBy) => ['analytics', 'registers', limit, skip, orderBy] as const,
   plans: () => ['analytics', 'plans'] as const,
+  lessonReports: (days?: number) => ['content-quality', 'lesson-reports', days] as const,
+  removedSubscriptions: (days?: number) => ['content-quality', 'removed-subscriptions', days] as const,
+  surveys: (days?: number) => ['content-quality', 'surveys', days] as const,
+  questionReports: (page?: number, limit?: number) => ['content-quality', 'question-reports', page, limit] as const,
 };
 
 // Hook for registration metrics
@@ -111,5 +120,45 @@ export function usePlans() {
     queryFn: () => analyticsApi.plans() as Promise<PlanSummary[]>,
     staleTime: 10 * 60 * 1000,
     refetchInterval: 10 * 60 * 1000,
+  });
+}
+
+// Hook for lesson reports
+export function useLessonReports(days: number = 30) {
+  return useQuery({
+    queryKey: QUERY_KEYS.lessonReports(days),
+    queryFn: () => contentQualityApi.lessonReports(days) as Promise<LessonReportsDto>,
+    staleTime: 5 * 60 * 1000,
+    refetchInterval: 5 * 60 * 1000,
+  });
+}
+
+// Hook for removed subscriptions
+export function useRemovedSubscriptions(days: number = 30) {
+  return useQuery({
+    queryKey: QUERY_KEYS.removedSubscriptions(days),
+    queryFn: () => contentQualityApi.removedSubscriptions(days) as Promise<RemovedSubscriptionsDto>,
+    staleTime: 5 * 60 * 1000,
+    refetchInterval: 5 * 60 * 1000,
+  });
+}
+
+// Hook for surveys (screen feedback)
+export function useSurveys(days: number = 30) {
+  return useQuery({
+    queryKey: QUERY_KEYS.surveys(days),
+    queryFn: () => contentQualityApi.surveys(days) as Promise<SurveysDto>,
+    staleTime: 5 * 60 * 1000,
+    refetchInterval: 5 * 60 * 1000,
+  });
+}
+
+// Hook for question reports
+export function useQuestionReports(page: number = 1, limit: number = 10000) {
+  return useQuery({
+    queryKey: QUERY_KEYS.questionReports(page, limit),
+    queryFn: () => contentQualityApi.questionReports(page, limit) as Promise<QuestionReportsDto>,
+    staleTime: 5 * 60 * 1000,
+    refetchInterval: 5 * 60 * 1000,
   });
 }
