@@ -74,6 +74,9 @@ export interface SalesChartDto {
   summary: {
     totalSales: number;
     totalValue: number;
+    totalBilledValue: number;
+    totalPaidValue: number;
+    totalRefundedValue: number;
     averagePerDay: number;
     averageTicket: number;
   };
@@ -83,15 +86,31 @@ export interface SalesChartDto {
     dayOfWeek: string;
     sales: number;
     value: number;
+    billedValue: number;
+    paidValue: number;
+    refundedValue: number;
+    averageTicket: number;
+  }>;
+  monthlyData: Array<{
+    month: string;
+    monthName: string;
+    sales: number;
+    billedValue: number;
+    paidValue: number;
+    refundedValue: number;
+    netValue: number;
     averageTicket: number;
   }>;
   metadata: {
     lastUpdated: string;
     dataSource: string;
+    currency: string;
     filters: {
       status: string[];
       excludeTrials: boolean;
+      excludeGifts: boolean;
       period: string;
+      dateField: string;
     };
   };
 }
@@ -105,19 +124,26 @@ export interface SalesMonthlyChartDto {
   summary: {
     totalSales: number;
     totalValue: number;
+    totalBilledValue: number;
+    totalPaidValue: number;
+    totalRefundedValue: number;
     averagePerMonth: number;
     averageTicket: number;
   };
   monthlyData: Array<{
     month: string;
-    monthFormatted: string;
+    monthName: string;
     sales: number;
-    value: number;
+    billedValue: number;
+    paidValue: number;
+    refundedValue: number;
+    netValue: number;
     averageTicket: number;
   }>;
   metadata: {
     lastUpdated: string;
     dataSource: string;
+    currency: string;
     filters: Record<string, any>;
   };
 }
@@ -198,6 +224,10 @@ export type PaymentMethod =
 export type RegistersOrderBy = 'registration' | 'purchase';
 
 // Helper types for periods
+export type Period = '7d' | '30d' | '90d' | '365d';
+
+// Legacy periods (mantido para compatibilidade)
+export type LegacyPeriod = '7d' | '15d' | '30d' | '3m' | '6m';
 export type Period = '7d' | '15d' | '30d' | '6m' | '3m' | 'daily';
 export type SalesGranularity = 'daily' | 'monthly';
 

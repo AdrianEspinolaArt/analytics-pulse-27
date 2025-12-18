@@ -55,23 +55,22 @@ export function useConversion() {
   });
 }
 
-// Hook for sales data (daily)
+// Hook for sales data (unified - returns dailyData and monthlyData)
 export function useSales(period?: string) {
   return useQuery({
     queryKey: QUERY_KEYS.sales(period),
     queryFn: () => analyticsApi.sales(period) as Promise<SalesChartDto>,
-    staleTime: period && period.endsWith('d') && parseInt(period) <= 7 ? 60 * 1000 : 5 * 60 * 1000,
+    staleTime: period === '365d' ? 10 * 60 * 1000 : 5 * 60 * 1000, // 10min for yearly, 5min for others
     refetchInterval: 5 * 60 * 1000,
-    enabled: !period?.includes('m'), // Only for daily data
   });
 }
 
-// Hook for monthly sales data  
+// Hook for monthly sales data (deprecated - use useSales instead)
 export function useSalesMonthly(period?: string) {
   return useQuery({
     queryKey: QUERY_KEYS.sales(period),
     queryFn: () => analyticsApi.sales(period) as Promise<SalesMonthlyChartDto>,
-    staleTime: 10 * 60 * 1000, // 10 minutes for monthly data
+    staleTime: 10 * 60 * 1000,
     refetchInterval: 10 * 60 * 1000,
     enabled: Boolean(period?.includes('m')), // Only for monthly data (6m, 3m, etc)
   });

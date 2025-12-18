@@ -20,27 +20,17 @@ import PaymentMethodsChart from "./PaymentMethodsChart";
 
 import { 
   useRegistrations, 
-  useSales, 
-  useSalesMonthly
+  useSales
 } from "@/hooks/use-analytics";
 import { Period } from "@/types/analytics";
 import RecurringMetrics from "./RecurringMetrics";
 
 export function AnalyticsDashboard() {
   const [selectedPeriod, setSelectedPeriod] = useState<Period>('7d');
-  const [salesPeriod, setSalesPeriod] = useState<Period>('15d');
+  const [salesPeriod, setSalesPeriod] = useState<Period>('365d');
 
   const { data: registrations, isLoading: loadingReg, isError: errorReg } = useRegistrations(selectedPeriod);
-  const { data: salesDaily, isLoading: loadingSalesDaily } = useSales(
-    salesPeriod.includes('m') ? undefined : salesPeriod
-  );
-  const { data: salesMonthly, isLoading: loadingSalesMonthly } = useSalesMonthly(
-    salesPeriod.includes('m') ? salesPeriod : undefined
-  );
-
-  const isMonthlyView = salesPeriod.includes('m');
-  const salesData = isMonthlyView ? salesMonthly : salesDaily;
-  const loadingSales = isMonthlyView ? loadingSalesMonthly : loadingSalesDaily;
+  const { data: salesData, isLoading: loadingSales } = useSales(salesPeriod);
 
   if (errorReg) {
     return (
@@ -241,15 +231,16 @@ export function AnalyticsDashboard() {
                     Período:
                   </label>
                   <div className="inline-flex rounded-md bg-muted/5 p-1" id="sales-period-selector">
-                    {(['7d','15d','30d','3m','6m'] as Period[]).map((p) => {
+                    {(['7d', '30d', '90d', '365d'] as Period[]).map((p) => {
                       const active = salesPeriod === p;
+                      const labels = { '7d': '7d', '30d': '30d', '90d': '90d', '365d': '1a' };
                       return (
                         <button
                           key={p}
                           onClick={() => setSalesPeriod(p)}
                           className={"px-3 py-1 text-xs rounded-md font-medium " + (active ? "bg-primary text-white" : "text-muted-foreground")}
                         >
-                          {p}
+                          {labels[p]}
                         </button>
                       );
                     })}
@@ -258,7 +249,6 @@ export function AnalyticsDashboard() {
 
                 <SalesChart 
                   data={salesData}
-                  type={isMonthlyView ? 'monthly' : 'daily'}
                   period={salesPeriod}
                   onPeriodChange={(p) => setSalesPeriod(p)}
                 />
