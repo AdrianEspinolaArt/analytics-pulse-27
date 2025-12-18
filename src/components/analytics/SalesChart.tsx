@@ -249,18 +249,18 @@ export function SalesChart({ data, className, period = '365d', onPeriodChange }:
             <div className="text-xs text-muted-foreground">Total de Vendas</div>
           </div>
           
-          <div className="text-center p-3 bg-green-500/5 rounded-lg">
-            <div className="text-lg font-semibold text-green-600 dark:text-green-400">
-              {formatCurrency(summary.totalPaidValue)}
-            </div>
-            <div className="text-xs text-muted-foreground">Valor Pago</div>
-          </div>
-          
           <div className="text-center p-3 bg-blue-500/5 rounded-lg">
             <div className="text-lg font-semibold text-blue-600 dark:text-blue-400">
               {formatCurrency(summary.totalBilledValue)}
             </div>
             <div className="text-xs text-muted-foreground">Valor Faturado</div>
+          </div>
+          
+          <div className="text-center p-3 bg-green-500/5 rounded-lg">
+            <div className="text-lg font-semibold text-green-600 dark:text-green-400">
+              {formatCurrency(summary.totalPaidValue)}
+            </div>
+            <div className="text-xs text-muted-foreground">Valor Pago</div>
           </div>
           
           <div className="text-center p-3 bg-red-500/5 rounded-lg">
@@ -277,7 +277,7 @@ export function SalesChart({ data, className, period = '365d', onPeriodChange }:
             <div className="text-base font-semibold text-foreground">
               {formatCurrency(summary.totalValue)}
             </div>
-            <div className="text-xs text-muted-foreground">Valor Líquido</div>
+            <div className="text-xs text-muted-foreground">Valor Recebido</div>
           </div>
           
           <div className="text-center">
@@ -331,15 +331,15 @@ export function SalesChart({ data, className, period = '365d', onPeriodChange }:
                             <span className="font-medium">{data.sales}</span>
                           </div>
                           <div className="flex items-center justify-between gap-3">
-                            <span className="text-green-600 dark:text-green-400">Valor Pago:</span>
-                            <span className="font-medium text-green-600 dark:text-green-400">
-                              {formatCurrencyDetailed(data.paidValue)}
-                            </span>
-                          </div>
-                          <div className="flex items-center justify-between gap-3">
                             <span className="text-blue-600 dark:text-blue-400">Faturado:</span>
                             <span className="font-medium text-blue-600 dark:text-blue-400">
                               {formatCurrencyDetailed(data.billedValue)}
+                            </span>
+                          </div>
+                          <div className="flex items-center justify-between gap-3">
+                            <span className="text-green-600 dark:text-green-400">Valor Pago:</span>
+                            <span className="font-medium text-green-600 dark:text-green-400">
+                              {formatCurrencyDetailed(data.paidValue)}
                             </span>
                           </div>
                           <div className="flex items-center justify-between gap-3">
@@ -349,7 +349,7 @@ export function SalesChart({ data, className, period = '365d', onPeriodChange }:
                             </span>
                           </div>
                           <div className="flex items-center justify-between gap-3 pt-1 border-t">
-                            <span className="text-foreground font-medium">Líquido:</span>
+                            <span className="text-foreground font-medium">Recebido:</span>
                             <span className="font-semibold text-primary">
                               {formatCurrencyDetailed(data.netValue)}
                             </span>
@@ -371,15 +371,15 @@ export function SalesChart({ data, className, period = '365d', onPeriodChange }:
                   wrapperStyle={{ fontSize: '12px' }}
                 />
                 <Bar
-                  dataKey="paidValue"
-                  name="Valor Pago"
-                  fill="hsl(142, 76%, 36%)"
-                  radius={[4, 4, 0, 0]}
-                />
-                <Bar
                   dataKey="billedValue"
                   name="Valor Faturado"
                   fill="hsl(217, 91%, 60%)"
+                  radius={[4, 4, 0, 0]}
+                />
+                <Bar
+                  dataKey="paidValue"
+                  name="Valor Pago"
+                  fill="hsl(142, 76%, 36%)"
                   radius={[4, 4, 0, 0]}
                 />
                 <Bar
@@ -422,15 +422,15 @@ export function SalesChart({ data, className, period = '365d', onPeriodChange }:
                               <span className="font-medium">{data.sales}</span>
                             </div>
                             <div className="flex items-center justify-between gap-3">
-                              <span className="text-green-600 dark:text-green-400">Valor Pago:</span>
-                              <span className="font-medium text-green-600 dark:text-green-400">
-                                {formatCurrencyDetailed(data.paidValue)}
-                              </span>
-                            </div>
-                            <div className="flex items-center justify-between gap-3">
                               <span className="text-blue-600 dark:text-blue-400">Faturado:</span>
                               <span className="font-medium text-blue-600 dark:text-blue-400">
                                 {formatCurrencyDetailed(data.billedValue)}
+                              </span>
+                            </div>
+                            <div className="flex items-center justify-between gap-3">
+                              <span className="text-green-600 dark:text-green-400">Valor Pago:</span>
+                              <span className="font-medium text-green-600 dark:text-green-400">
+                                {formatCurrencyDetailed(data.paidValue)}
                               </span>
                             </div>
                             <div className="flex items-center justify-between gap-3">
@@ -440,7 +440,7 @@ export function SalesChart({ data, className, period = '365d', onPeriodChange }:
                               </span>
                             </div>
                             <div className="flex items-center justify-between gap-3 pt-1 border-t">
-                              <span className="text-foreground font-medium">Líquido:</span>
+                              <span className="text-foreground font-medium">Recebido:</span>
                               <span className="font-semibold text-primary">
                                 {formatCurrencyDetailed(data.netValue)}
                               </span>
@@ -464,21 +464,21 @@ export function SalesChart({ data, className, period = '365d', onPeriodChange }:
                 />
                 <Line
                   type="monotone"
-                  dataKey="paidValue"
-                  name="Valor Pago"
-                  stroke="hsl(142, 76%, 36%)"
-                  strokeWidth={2.5}
-                  dot={{ fill: "hsl(142, 76%, 36%)", r: 4 }}
-                  activeDot={{ r: 6 }}
-                />
-                <Line
-                  type="monotone"
                   dataKey="billedValue"
                   name="Valor Faturado"
                   stroke="hsl(217, 91%, 60%)"
                   strokeWidth={2}
                   dot={{ fill: "hsl(217, 91%, 60%)", r: 3 }}
                   strokeDasharray="5 5"
+                />
+                <Line
+                  type="monotone"
+                  dataKey="paidValue"
+                  name="Valor Pago"
+                  stroke="hsl(142, 76%, 36%)"
+                  strokeWidth={2.5}
+                  dot={{ fill: "hsl(142, 76%, 36%)", r: 4 }}
+                  activeDot={{ r: 6 }}
                 />
                 <Line
                   type="monotone"
