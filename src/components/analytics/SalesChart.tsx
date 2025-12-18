@@ -240,60 +240,6 @@ export function SalesChart({ data, className, period = '365d', onPeriodChange }:
       </CardHeader>
       
       <CardContent>
-        {/* Summary metrics - expanded with new data */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-          <div className="text-center p-3 bg-primary/5 rounded-lg">
-            <div className="text-lg font-semibold text-foreground">
-              {summary.totalSales.toLocaleString('pt-BR')}
-            </div>
-            <div className="text-xs text-muted-foreground">Total de Vendas</div>
-          </div>
-          
-          <div className="text-center p-3 bg-blue-500/5 rounded-lg">
-            <div className="text-lg font-semibold text-blue-600 dark:text-blue-400">
-              {formatCurrency(summary.totalBilledValue)}
-            </div>
-            <div className="text-xs text-muted-foreground">Valor Faturado</div>
-          </div>
-          
-          <div className="text-center p-3 bg-green-500/5 rounded-lg">
-            <div className="text-lg font-semibold text-green-600 dark:text-green-400">
-              {formatCurrency(summary.totalPaidValue)}
-            </div>
-            <div className="text-xs text-muted-foreground">Valor Pago</div>
-          </div>
-          
-          <div className="text-center p-3 bg-red-500/5 rounded-lg">
-            <div className="text-lg font-semibold text-red-600 dark:text-red-400">
-              {formatCurrency(summary.totalRefundedValue)}
-            </div>
-            <div className="text-xs text-muted-foreground">Reembolsos</div>
-          </div>
-        </div>
-
-        {/* Additional metrics row */}
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
-          <div className="text-center">
-            <div className="text-base font-semibold text-foreground">
-              {formatCurrency(summary.totalValue)}
-            </div>
-            <div className="text-xs text-muted-foreground">Valor Recebido</div>
-          </div>
-          
-          <div className="text-center">
-            <div className="text-base font-semibold text-foreground">
-              {summary.averagePerDay.toFixed(1)}
-            </div>
-            <div className="text-xs text-muted-foreground">Média por Dia</div>
-          </div>
-          
-          <div className="text-center">
-            <div className="text-base font-semibold text-foreground">
-              {formatCurrency(summary.averageTicket)}
-            </div>
-            <div className="text-xs text-muted-foreground">Ticket Médio</div>
-          </div>
-        </div>
 
         {/* Chart */}
         <div className="h-[350px] w-full">
@@ -354,10 +300,7 @@ export function SalesChart({ data, className, period = '365d', onPeriodChange }:
                               {formatCurrencyDetailed(data.netValue)}
                             </span>
                           </div>
-                          <div className="flex items-center justify-between gap-3">
-                            <span className="text-muted-foreground">Ticket Médio:</span>
-                            <span className="font-medium">{formatCurrencyDetailed(data.averageTicket)}</span>
-                          </div>
+                          
                         </div>
                       </div>
                     );
