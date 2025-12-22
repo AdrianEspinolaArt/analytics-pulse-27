@@ -1,14 +1,18 @@
+import { useState } from 'react';
 import { useSurveys } from '@/hooks/use-analytics';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { Star, MessageSquare, Smartphone, TrendingUp } from 'lucide-react';
+import { Star, MessageSquare, Smartphone, TrendingUp, FileSpreadsheet } from 'lucide-react';
+import { apiGet } from '@/lib/api';
 
 const COLORS = ['#3b82f6', '#8b5cf6', '#06b6d4', '#10b981', '#f59e0b', '#ef4444'];
 
 export function SurveysSection() {
   const { data, isLoading, error } = useSurveys(30);
+  const [isExporting, setIsExporting] = useState(false);
 
   if (isLoading) {
     return (
@@ -84,8 +88,129 @@ export function SurveysSection() {
     current.count > prev.count ? current : prev
   );
 
+  // Helper function to parse Brazilian date (DD/MM/YYYY) to Excel date
+  const parseDateBR = (dateStr: string | null): Date | null => {
+    if (!dateStr || dateStr.trim() === '') return null;
+    const [day, month, year] = dateStr.split('/').map(s => Number.parseInt(s, 10));
+    if (!day || !month || !year) return null;
+    return new Date(year, month - 1, day);
+  };
+
+  // Helper function to normalize values
+  const normalizeValue = (val: any): string => {
+    if (val === null || val === undefined || val === '') return '';
+    return String(val).trim();
+  };
+
+  // Export function
+  const handleExport = async () => {
+    setIsExporting(true);
+    try {
+      // Fetch data from API
+      const response = await apiGet<{
+        total: number;
+        feedbacks: Array<{
+          nomeFormulario: string;
+          estrelas: number;
+          motivo: any;
+          dataFeedback: string;
+          identificadorTela: string;
+          plataforma: string;
+          versao: string;
+        }>;
+        metadata?: any;
+      }>('content-quality/surveys/feedback-user-table');
+
+      if (!response.feedbacks || response.feedbacks.length === 0) {
+        alert('Nenhum feedback disponível para exportar.');
+        return;
+      }
+
+      // Transform data with renamed columns and proper formatting
+      const allRows = response.feedbacks.map((row) => ({
+        "Pergunta": normalizeValue(row.nomeFormulario),
+        "Avaliação": row.estrelas || '',
+        "Motivo": normalizeValue(row.motivo),
+        "Tela": normalizeValue(row.identificadorTela),
+        "Plataforma": normalizeValue(row.plataforma),
+        "Data": row.dataFeedback ? parseDateBR(row.dataFeedback) : null,
+        "Versão App": normalizeValue(row.versao)
+      }));
+
+      // Import XLSX dynamically
+      let xlsxModule: any = null;
+      try {
+        // @ts-ignore
+        xlsxModule = await import(/* @vite-ignore */ 'https://cdn.sheetjs.com/xlsx-latest/package/xlsx.mjs').catch(() => null);
+      } catch (e) {
+        console.debug('xlsx dynamic import failed', e);
+        xlsxModule = null;
+      }
+
+      if (!xlsxModule) {
+        // CSV fallback
+        const headers = Object.keys(allRows[0]);
+        const quotedHeaders = headers.map(h => `"${String(h).replaceAll('"', '""')}"`).join(',');
+        const csvRows = allRows.map(row =>
+          headers
+            .map(h => {
+              const v = row[h as keyof typeof row];
+              if (v === null || v === undefined || v === '') return "";
+              if (v instanceof Date) {
+                return v.toLocaleDateString('pt-BR');
+              }
+              return String(v).replaceAll('"', '""');
+            })
+            .map(cell => `"${cell}"`)
+            .join(',')
+        );
+        const csv = [quotedHeaders].concat(csvRows).join('\n');
+
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'feedback-telas.csv';
+        a.click();
+        URL.revokeObjectURL(url);
+        return;
+      }
+
+      // Export Excel
+      const XLSX: any = xlsxModule;
+      const worksheet = XLSX.utils.json_to_sheet(allRows);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Feedback Telas');
+      const wbout = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+      const blob = new Blob([wbout], { type: 'application/octet-stream' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'feedback-telas.xlsx';
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Erro ao exportar feedback:', error);
+      alert('Erro ao exportar feedback. Por favor, tente novamente.');
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
+      {/* Export Button */}
+      <div className="flex justify-end">
+        <Button
+          onClick={handleExport}
+          disabled={isExporting}
+          className="gap-2"
+        >
+          <FileSpreadsheet className="h-4 w-4" />
+          {isExporting ? 'Exportando...' : 'Exportar Planilha'}
+        </Button>
+      </div>
+
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
